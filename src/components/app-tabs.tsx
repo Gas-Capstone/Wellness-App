@@ -27,6 +27,14 @@ export default function AppTabs() {
           renderingMode="template"
         />
       </NativeTabs.Trigger>
+
+      <NativeTabs.Trigger name="habits">
+        <NativeTabs.Trigger.Label>Habits</NativeTabs.Trigger.Label>
+          <NativeTabs.Trigger.Icon
+            sf="timer"
+            md="timer"
+          />
+      </NativeTabs.Trigger>
     </NativeTabs>
   );
 }

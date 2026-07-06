@@ -2,6 +2,7 @@
   "expo": {
     "name": "Wellness-App",
     "slug": "Wellness-App",
+    "owner": "team-gas",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -37,6 +38,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "2242acf9-e19d-48b6-b7e2-0ce01b04802b"
+      }
     }
   }
 }
