@@ -5,7 +5,7 @@
   },
   "build": {
     "development": {
-      "developer": {
+      "ios": {
         "simulator": true
       },
       "developmentClient": true,
