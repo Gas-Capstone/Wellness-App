@@ -6,7 +6,7 @@ import { useColorScheme } from "react-native";
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
 
 import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
-import '@/src/global.css';
+import '@/global.css';
 
 SplashScreen.preventAutoHideAsync();
 
