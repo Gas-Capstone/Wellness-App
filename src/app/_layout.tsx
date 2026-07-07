@@ -5,6 +5,9 @@ import * as SplashScreen from "expo-splash-screen";
 import { useColorScheme } from "react-native";
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
 
+import { GluestackUIProvider } from '@/components/ui/gluestack-ui-provider';
+import '@/src/global.css';
+
 SplashScreen.preventAutoHideAsync();
 
 export default function TabLayout() {
@@ -13,11 +16,15 @@ export default function TabLayout() {
   const curTheme = (isDark ? MD3DarkTheme : MD3LightTheme);
   const themeProviderTheme = (isDark ? DarkTheme : DefaultTheme);
   return (
-    <PaperProvider theme={curTheme}>
+    
+    <GluestackUIProvider mode="dark">
+      <PaperProvider theme={curTheme}>
       <ThemeProvider value={themeProviderTheme}>
         <AnimatedSplashOverlay />
         <AppTabs />
       </ThemeProvider>
     </PaperProvider>
+    </GluestackUIProvider>
+  
   );
 }
