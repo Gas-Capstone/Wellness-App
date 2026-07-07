@@ -1,55 +1,23 @@
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
-import { StyleSheet, View } from "react-native";
-import { Button, Text } from "react-native-paper";
+import { HStack } from "@/components/ui/hstack";
+import { styles } from "@/constants/styles";
+import { useEffect, useState } from "react";
+import { Text } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function HabitsScreen() {
+  const [ habitsComplete, setHabitsComplete ] = useState(0)
+  const [ habitNumber, setHabitNumber ] = useState(0)
+  useEffect(() => {
+    setHabitNumber(3)
+  }, [])
     return (
         <>
-            <SafeAreaView style={styles.container}>
-                <View style={styles.safeArea}>
-                    <Text variant="headlineMedium">Habits</Text>
-                    <Button mode="contained">New Habit</Button>
-                </View>
+          <SafeAreaView style={styles.safeArea}>
+                <HStack style={styles.headerRow}>
+                    <Text variant="headlineLarge">Habits</Text>
+                    <Text variant="titleMedium">{habitsComplete}/{habitNumber} complete</Text>
+                </HStack>
             </SafeAreaView>
         </>
     )
 }
-
-
-const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      justifyContent: 'center',
-      flexDirection: 'row',
-    },
-    safeArea: {
-      flex: 1,
-      paddingHorizontal: Spacing.four,
-      alignItems: 'center',
-      gap: Spacing.three,
-      paddingBottom: BottomTabInset + Spacing.three,
-      maxWidth: MaxContentWidth,
-    },
-    heroSection: {
-      alignItems: 'center',
-      justifyContent: 'center',
-      flex: 1,
-      paddingHorizontal: Spacing.four,
-      gap: Spacing.four,
-    },
-    title: {
-      textAlign: 'center',
-    },
-    code: {
-      textTransform: 'uppercase',
-    },
-    stepContainer: {
-      gap: Spacing.three,
-      alignSelf: 'stretch',
-      paddingHorizontal: Spacing.three,
-      paddingVertical: Spacing.four,
-      borderRadius: Spacing.four,
-    },
-  });
-  
