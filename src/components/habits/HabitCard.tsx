@@ -1,4 +1,4 @@
-import { Card, Text, Switch } from "react-native-paper"
+import { Card, Text, Switch, IconButton } from "react-native-paper"
 import { HStack } from "@/components/ui/hstack"
 import { VStack } from "@/components/ui/vstack"
 import { styles } from "@/constants/styles"
@@ -9,13 +9,15 @@ type habitCardProps = {
     time: string;
     isDone: boolean;
     onToggle: () => void;
+    onDelete: () => void;
 }
 
 export function HabitCard({
     title,
     time,
     isDone=false,
-    onToggle
+    onToggle,
+    onDelete
 }: habitCardProps) {
 
 
@@ -35,6 +37,9 @@ export function HabitCard({
                 </Text>}
                 left={() => (
                     <Switch value={isDone} onValueChange={onToggle}/>
+                )}
+                right={() => (
+                    <IconButton icon="delete" onPress={onDelete}/>
                 )}
             />
         </Card>

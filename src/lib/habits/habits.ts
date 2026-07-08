@@ -27,7 +27,7 @@ export function addHabitToList(
     habits: Habit[],
     title: string,
     time: string
-): Habit[] {
+) {
     const trimmedTitle = title.trim()
     if (!trimmedTitle) return habits;
 
@@ -39,4 +39,8 @@ export function addHabitToList(
             time
         }
     ]
+}
+
+export function removeHabitFromList(habits: Habit[], habitId: number) {
+    return habits.filter((habit) => habit.id !== habitId)
 }

@@ -20,7 +20,7 @@ export function getWeekArray() {
             fullDate: "yyyy-mm-dd"
             dayOfWeek: string
             dayNumber: string
-            label: string containing first letter of day of week
+            label: "Su"/"Mo"/"Tu"/etc...
             isToday: boolean
         */
         return {
@@ -28,7 +28,7 @@ export function getWeekArray() {
             fullDate: format(date, "yyyy-MM-dd"),
             dayOfWeek: format(date, "EEEE"),
             dayNumber: format(date, "d"),
-            label: format(date, "EEEEE"),
+            label: format(date, "EEEEEE"),
             isToday: isToday(date)
         }
     })

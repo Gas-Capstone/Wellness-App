@@ -9,7 +9,7 @@ import { View } from "react-native";
 import { HabitAnimatedFAB } from "./HabitAnimatedFAB";
 import { HabitCard } from "./HabitCard";
 import { getTodaysDate } from "@/lib/time_management/week";
-import { CompletionsByDate, Habit, isHabitDone, addHabitToList } from "@/lib/habits/habits";
+import { CompletionsByDate, Habit, isHabitDone, addHabitToList, removeHabitFromList } from "@/lib/habits/habits";
 import { AddHabitModal } from "./AddHabitModal";
 
 
@@ -36,7 +36,9 @@ export default function HabitsScreen() {
     setHabitArray((prev) => addHabitToList(prev, title, time))
   }
 
-
+  const removeHabit = (habitId: number) => {
+    setHabitArray((prev) => removeHabitFromList(prev, habitId))
+  }
 
   const habitsForDay = habitArray;
   const habitNumber = habitsForDay.length;
@@ -50,13 +52,6 @@ export default function HabitsScreen() {
     setFabExtended(currentPos <= 0)
   }
 
-  useEffect(() => {
-    setHabitArray([
-      { id: 1, title: "Stretch", time: "9:30 am" },
-      { id: 2, title: "Meditate", time: "12:00 pm" },
-      { id: 3, title: "Read for 30 minutes", time: "6:00 pm" }
-    ])
-  }, [])
     return (
         <>
           <SafeAreaView style={styles.safeArea}>
@@ -78,6 +73,7 @@ export default function HabitsScreen() {
                       time={habit.time}
                       isDone={isHabitDone(habit.id, selectedDate, habitCompletions)}
                       onToggle={() => toggleHabit({ habitId: habit.id, habitDate: selectedDate })}
+                      onDelete={() => removeHabit(habit.id)}
                     />
                   ))}
                 </VStack>
