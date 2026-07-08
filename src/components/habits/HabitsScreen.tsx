@@ -9,7 +9,8 @@ import { View } from "react-native";
 import { HabitAnimatedFAB } from "./HabitAnimatedFAB";
 import { HabitCard } from "./HabitCard";
 import { getTodaysDate } from "@/lib/time_management/week";
-import { CompletionsByDate, Habit, isHabitDone } from "@/lib/habits/habits";
+import { CompletionsByDate, Habit, isHabitDone, addHabitToList } from "@/lib/habits/habits";
+import { AddHabitModal } from "./AddHabitModal";
 
 
 export default function HabitsScreen() {
@@ -17,6 +18,7 @@ export default function HabitsScreen() {
   const [ fabExtended, setFabExtended ] = useState(true);
   const [ habitArray, setHabitArray ] = useState<Habit[]>([])
   const [ habitCompletions, setHabitCompletions ] = useState<CompletionsByDate>({});
+  const [ modalVisible, setModalVisible ] = useState(false)
 
   const toggleHabit = ({habitId, habitDate}) => {
     setHabitCompletions((prev) => {
@@ -30,6 +32,12 @@ export default function HabitsScreen() {
     })
   }
 
+  const addHabit = ({ title, time }) => {
+    setHabitArray((prev) => addHabitToList(prev, title, time))
+  }
+
+
+
   const habitsForDay = habitArray;
   const habitNumber = habitsForDay.length;
   // use .filter to grab number of habits complete based on result of isHabitDone() for given habit
@@ -41,6 +49,7 @@ export default function HabitsScreen() {
     const currentPos = Math.floor(nativeEvent?.contentOffset?.y) ?? 0
     setFabExtended(currentPos <= 0)
   }
+
   useEffect(() => {
     setHabitArray([
       { id: 1, title: "Stretch", time: "9:30 am" },
@@ -76,7 +85,15 @@ export default function HabitsScreen() {
 
             <HabitAnimatedFAB
               extended={fabExtended}
-              onPress={() => console.log("FAB pressed")}
+              onPress={() => setModalVisible(true)}
+            />
+
+            <AddHabitModal
+              visible={modalVisible}
+              onDismiss={() => setModalVisible(false)}
+              onSave={(habit) => {
+                addHabit(habit)
+              }}
             />
         </>
     )
