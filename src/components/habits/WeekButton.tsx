@@ -2,15 +2,20 @@ import { Button, Text, Avatar, useTheme } from "react-native-paper"
 import { useState, useEffect } from "react"
 import { Pressable } from "react-native";
 import { VStack } from "@/components/ui/vstack";
-import { WeekDay } from "@/lib/time_management/week";
 
 type weekButtonProps = {
-    day: WeekDay;
-    isSelected: boolean;
+    day: {
+        dayOfWeek: string;
+        fullDate: string;
+        dayNumber: string;
+        label: string;
+    }
+    selectedDate: string;
     onPress?: () => void;
 }
 
-export function WeekButton({ day, isSelected, onPress }: weekButtonProps) {
+export function WeekButton({ day, selectedDate, onPress }: weekButtonProps) {
+    const isSelected = (selectedDate === day.dayNumber)
     const SIZE = 40
     const theme = useTheme();
     return (
