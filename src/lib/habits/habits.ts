@@ -1,8 +1,14 @@
+import { getDay, parseISO } from "date-fns";
+
+export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6
+
 export type Habit = {
     title: string;
     time: string;
+    weekdays: Weekday[]; // if weekdays is empty, it means habit is scheduled for every day
     id: number;
   }
+
 
 export type HabitCompletion = {
     habitId: number;
@@ -26,7 +32,8 @@ export function isHabitDone(habitId: number, habitDate: string, completions: Com
 export function addHabitToList(
     habits: Habit[],
     title: string,
-    time: string
+    time: string,
+    weekdays: Weekday[]
 ) {
     const trimmedTitle = title.trim()
     if (!trimmedTitle) return habits;
@@ -36,11 +43,21 @@ export function addHabitToList(
         {
             id: Date.now(),
             title: trimmedTitle,
-            time
+            time,
+            weekdays
         }
     ]
 }
 
 export function removeHabitFromList(habits: Habit[], habitId: number) {
     return habits.filter((habit) => habit.id !== habitId)
+}
+
+export function isHabitOnDate(habit: Habit, date: string){
+    if (habit.weekdays.length === 0) return true;
+    return habit.weekdays.includes(getDay(parseISO(date)) as Weekday)
+}
+
+export function getHabitsForDate(habits: Habit[], date: string){
+    return habits.filter((habit) => isHabitOnDate(habit, date))
 }

@@ -6,19 +6,48 @@ import { styles } from "@/constants/styles"
 import { HStack } from "@/components/ui/hstack"
 import { VStack } from "@/components/ui/vstack"
 import { Center } from "@/components/ui/center"
-import { Habit } from "@/lib/habits/habits"
+import { Habit, Weekday } from "@/lib/habits/habits"
 
 type AddHabitModalProps = {
     visible: boolean,
     onDismiss: () => void;
-    onSave?: (habit: {title: string; time: string }) => void;
+    onSave?: (habit: {title: string; time: string; weekdays: Weekday[] }) => void;
 }
+
+const WEEKDAY_LABELS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
+const FIRST_ROW_WEEKDAYS = ["Su", "Mo", "Tu", "We"]
+const SECOND_ROW_WEEKDAYS = ["Th", "Fr", "Sa"]
 
 export function AddHabitModal({ visible, onDismiss, onSave }: AddHabitModalProps) {
     const [ time, setTime ] = useState(new Date())
     const [ showPicker, setShowPicker ] = useState(false)
     const [ habitTitle, setHabitTitle ] = useState("")
+    const [ weekdays, setWeekdays ] = useState<Weekday[]>([])
+    const theme = useTheme()
 
+    const renderWeekdayChip = (label: string, weekdayIndex: Weekday) => {
+        
+        return (
+            <Chip
+                key={label}
+                selected={weekdays.includes(weekdayIndex)}
+                onPress={() => toggleWeekday(weekdayIndex)}
+                style={{ backgroundColor: theme.colors.background }}
+            >
+                {label}
+            </Chip>
+        )
+    }
+
+    const toggleWeekday = (weekday: Weekday) => {
+        setWeekdays((currentWeekdays) => {
+            const isSelected = currentWeekdays.includes(weekday)
+            if (isSelected) {
+                return currentWeekdays.filter((day) => day !== weekday)
+            }
+            return [...currentWeekdays, weekday]
+        })
+    }
     
     const showMode = (currentMode) => {
         DateTimePickerAndroid.open({
@@ -38,7 +67,8 @@ export function AddHabitModal({ visible, onDismiss, onSave }: AddHabitModalProps
 
         onSave?.({
             title: habitTitle,
-            time: format(time, "h:mm aa")
+            time: format(time, "h:mm aa"),
+            weekdays
         })
 
         setHabitTitle("")
@@ -67,10 +97,23 @@ export function AddHabitModal({ visible, onDismiss, onSave }: AddHabitModalProps
                                     value={habitTitle}
                                     onChangeText={(text) => setHabitTitle(text)}
                                 />
-                                <Button onPress={showTimepicker}>Pick time of day</Button>
+                                <Button compact onPress={showTimepicker}>Pick time of day</Button>
                                 <Center>
                                     <Text>Selected: {format(time, 'h:mm aa')}</Text>
                                 </Center>
+                                <VStack space="sm" style={{ alignSelf: "stretch" }}>
+                                    <HStack space="sm" style={{ justifyContent: "center"}}>
+                                        {WEEKDAY_LABELS.slice(0, 4).map((label, index) =>
+                                            renderWeekdayChip(label, index as Weekday)
+                                        )}
+                                    </HStack>
+
+                                    <HStack space="sm" style={{ justifyContent: "center" }}>
+                                        {WEEKDAY_LABELS.slice(4).map((label, index) =>
+                                            renderWeekdayChip(label, (index + 4) as Weekday)
+                                        )}
+                                    </HStack>
+                                </VStack>
                             </VStack>
 
                         </Card.Content>

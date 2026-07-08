@@ -9,7 +9,7 @@ import { View } from "react-native";
 import { HabitAnimatedFAB } from "./HabitAnimatedFAB";
 import { HabitCard } from "./HabitCard";
 import { getTodaysDate } from "@/lib/time_management/week";
-import { CompletionsByDate, Habit, isHabitDone, addHabitToList, removeHabitFromList } from "@/lib/habits/habits";
+import { CompletionsByDate, Habit, isHabitDone, addHabitToList, removeHabitFromList, getHabitsForDate } from "@/lib/habits/habits";
 import { AddHabitModal } from "./AddHabitModal";
 
 
@@ -32,15 +32,15 @@ export default function HabitsScreen() {
     })
   }
 
-  const addHabit = ({ title, time }) => {
-    setHabitArray((prev) => addHabitToList(prev, title, time))
+  const addHabit = ({ title, time, weekdays }) => {
+    setHabitArray((prev) => addHabitToList(prev, title, time, weekdays))
   }
 
   const removeHabit = (habitId: number) => {
     setHabitArray((prev) => removeHabitFromList(prev, habitId))
   }
 
-  const habitsForDay = habitArray;
+  const habitsForDay = getHabitsForDate(habitArray, selectedDate)
   const habitNumber = habitsForDay.length;
   // use .filter to grab number of habits complete based on result of isHabitDone() for given habit
   const habitsComplete = habitsForDay.filter((habit) =>
@@ -66,7 +66,7 @@ export default function HabitsScreen() {
                     onSelectDate={setSelectedDate}
                   />
                   <Divider bold style={{ width: "100%" }}/>
-                  {habitArray.map((habit) => (
+                  {habitsForDay.map((habit) => (
                     <HabitCard
                       key={habit.id}
                       title={habit.title}
