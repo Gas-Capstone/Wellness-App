@@ -1,5 +1,7 @@
 import { HStack } from "@/components/ui/hstack";
 import { styles } from "@/constants/styles";
+import { ThemedView } from "../themed-view";
+import { useTheme } from "@/hooks/use-theme";
 import { useEffect, useState } from "react";
 import { Divider, Text, AnimatedFAB } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -54,10 +56,10 @@ export default function HabitsScreen() {
 
     return (
         <>
+        <ThemedView style={{ flex: 1}}>
           <SafeAreaView style={styles.safeArea}>
             <View />
                 <HStack style={styles.rowBox}>
-                    <Text variant="headlineLarge">Habits</Text>
                     <Text variant="titleMedium">{habitsComplete}/{habitNumber} complete</Text>
                 </HStack>
                 <VStack style={styles.columnContainer} space="md">
@@ -91,6 +93,7 @@ export default function HabitsScreen() {
                 addHabit(habit)
               }}
             />
+          </ThemedView>
         </>
     )
 }

@@ -127,7 +127,7 @@ function BottomBar(props: TabListProps) {
       {...props}
       style={[
         styles.bottomBarContainer,
-        { paddingBottom: insets.bottom || Spacing.two },
+        { paddingBottom: insets.bottom + Spacing.two || Spacing.two },
       ]}
     >
       <ThemedView type="backgroundElement" style={styles.bottomBarInner}>

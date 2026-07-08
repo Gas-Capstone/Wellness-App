@@ -1,8 +1,9 @@
 import React from "react";
 import { AnimatedFAB } from "react-native-paper";
 import { styles } from "@/constants/styles";
-import { Spacing } from "@/constants/theme";
+import { BottomTabInset, Spacing } from "@/constants/theme";
 import { StyleProp, ViewStyle } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 
 type habitAnimatedFABProps = {
@@ -22,14 +23,18 @@ export function HabitAnimatedFAB({
     onPress,
     style,
 }: habitAnimatedFABProps) {
-    const fabStyle = { [animateFrom]: 16 }
+    const insets = useSafeAreaInsets()
     return (
         <AnimatedFAB
             icon="plus"
             label={label}
             extended={extended}
             visible={visible}
-            style={[styles.animatedFABStyle, fabStyle, style
+            style={[styles.animatedFABStyle, 
+            {
+                right: Spacing.three,
+                bottom: BottomTabInset + insets.bottom + Spacing.four
+            }, style
             ]}
             onPress={onPress}
         />
