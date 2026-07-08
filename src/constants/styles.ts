@@ -12,7 +12,7 @@ export const styles = StyleSheet.create({
         flexDirection: "column",
         flexWrap: "wrap",
         alignSelf: "stretch",
-        alignItems: "center"
+        alignItems: "stretch"
       },
       safeArea: {
         flex: 1,
@@ -56,5 +56,14 @@ export const styles = StyleSheet.create({
         bottom: 16,
         right: 16,
         position: "absolute",
+      },
+      modalContent: {
+        justifyContent: "center",
+        paddingHorizontal: Spacing.four,
+      },
+      modalCard: {
+        alignSelf: "center",
+        width: "100%",
+        maxWidth: MaxContentWidth
       }
 })
