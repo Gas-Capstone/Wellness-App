@@ -18,18 +18,16 @@ import { ThemedView } from "./themed-view";
 import { Colors, MaxContentWidth, Spacing } from "@/constants/theme";
 
 // ---- Config -----------------------------------------------------------
-// Add/remove tabs here. `icon` is typed directly off SymbolView's own
-// `name` prop, so `ios`/`web` are checked as literal symbol names right
-// here instead of being widened to plain `string` and rejected later.
+// Use SymbolView's built-in cross-platform icon type.
+// This is the ONLY type that satisfies the strict union.
 
-type SymbolIcon = React.ComponentProps<typeof SymbolView>["name"];
-type TabHref = React.ComponentProps<typeof TabTrigger>["href"];
+type SymbolName = React.ComponentProps<typeof SymbolView>["name"];
 
 type TabConfig = {
   name: string;
-  href: TabHref;
+  href: string;
   label: string;
-  icon: SymbolIcon;
+  icon: SymbolName;
 };
 
 const TABS: TabConfig[] = [
@@ -41,25 +39,29 @@ const TABS: TabConfig[] = [
   },
   {
     name: "workouts",
-    href: "/workouts",
+    href: "/(tabs)/workouts",
     label: "Workouts",
-    icon: { ios: "dumbbell", android: "fitness_center", web: "fitness_center" },
+    icon: {
+      ios: "dumbbell",
+      android: "fitness_center",
+      web: "fitness_center",
+    },
   },
   {
     name: "meals",
-    href: "/meals",
+    href: "/(tabs)/meals",
     label: "Meals",
     icon: { ios: "fork.knife", android: "restaurant", web: "restaurant" },
   },
   {
     name: "habits",
-    href: "/habits",
+    href: "/(tabs)/habits",
     label: "Habits",
     icon: { ios: "timer", android: "timer", web: "timer" },
   },
   {
     name: "profile",
-    href: "/profile",
+    href: "/(tabs)/profile",
     label: "Profile",
     icon: { ios: "person", android: "person", web: "person" },
   },
@@ -68,8 +70,9 @@ const TABS: TabConfig[] = [
 // ---- Root ---------------------------------------------------------------
 
 export default function AppTabs() {
-  const pathname = usePathname();
-  const activeTab = TABS.find((t) => t.href === pathname) ?? TABS[0];
+  const pathname = usePathname() ?? "";
+
+  const activeTab = TABS.find((t) => pathname.startsWith(t.href)) ?? TABS[0];
 
   return (
     <View style={styles.root}>
@@ -81,7 +84,7 @@ export default function AppTabs() {
               <TabTrigger
                 key={tab.name}
                 name={tab.name}
-                href={tab.href}
+                href={tab.href as any} // required due to Expo Router strict typing
                 asChild
               >
                 <TabIcon tab={tab} />
@@ -90,12 +93,13 @@ export default function AppTabs() {
           </BottomBar>
         </TabList>
       </Tabs>
+
       <TopBadge activeTab={activeTab} />
     </View>
   );
 }
 
-// ---- Top badge: fixed at the very top of the screen ---------------------
+// ---- Top badge ----------------------------------------------------------
 
 function TopBadge({ activeTab }: { activeTab: TabConfig }) {
   const scheme = useColorScheme();
@@ -117,7 +121,7 @@ function TopBadge({ activeTab }: { activeTab: TabConfig }) {
   );
 }
 
-// ---- Bottom bar: TabList wrapper, holds one TabTrigger per tab ----------
+// ---- Bottom bar ----------------------------------------------------------
 
 function BottomBar(props: TabListProps) {
   const insets = useSafeAreaInsets();
@@ -127,7 +131,7 @@ function BottomBar(props: TabListProps) {
       {...props}
       style={[
         styles.bottomBarContainer,
-        { paddingBottom: insets.bottom + Spacing.two || Spacing.two },
+        { paddingBottom: (insets.bottom ?? 0) + Spacing.two },
       ]}
     >
       <ThemedView type="backgroundElement" style={styles.bottomBarInner}>
@@ -137,7 +141,7 @@ function BottomBar(props: TabListProps) {
   );
 }
 
-// ---- Individual tab icon: raises itself above the bar when focused -----
+// ---- Individual tab icon -------------------------------------------------
 
 function TabIcon({
   tab,
@@ -176,6 +180,7 @@ const styles = StyleSheet.create({
   root: {
     flex: 1,
   },
+
   // Top badge
   topBadgeContainer: {
     position: "absolute",
