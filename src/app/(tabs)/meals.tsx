@@ -1,14 +1,7 @@
-import { ScreenPlaceholder } from "@/components/screen-placeholder";
-import { useTheme } from "@/hooks/use-theme";
+import MealsScreen from "@/components/meals/MealsScreen";
 
-export default function MealsScreen() {
-  const theme = useTheme();
-
+export default function meals() {
   return (
-    <ScreenPlaceholder
-      title="Meals"
-      description="Recipes based on what's in your fridge."
-      accentColor={theme.accentMeals}
-    />
-  );
+    <MealsScreen />
+  )
 }
