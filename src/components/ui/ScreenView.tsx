@@ -1,6 +1,6 @@
 import { ThemedView } from "../themed-view";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { ScrollView, ScrollViewProps } from "react-native"
+import { ScrollView, ScrollViewProps, View, StyleSheet } from "react-native"
 import { styles } from "@/constants/styles";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { BottomTabInset, Spacing, TopBadgeInset } from "@/constants/theme";
@@ -38,7 +38,9 @@ export function ScreenView({
             {children}
           </ScrollView>
         </SafeAreaView>
-        {overlay}
+        <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+          {overlay}
+        </View>
       </ThemedView>
     );
   }

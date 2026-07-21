@@ -32,7 +32,9 @@ export function HabitAnimatedFAB({
             style={[
             {
                 right: Spacing.three,
-                bottom: BottomTabInset + insets.bottom + Spacing.four
+                bottom: BottomTabInset + insets.bottom + Spacing.four,
+                position: "absolute",
+                ...(extended ? {} : {width: 56})
             }, style
             ]}
             onPress={onPress}

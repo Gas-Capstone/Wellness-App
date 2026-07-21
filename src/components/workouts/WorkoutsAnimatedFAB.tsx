@@ -29,11 +29,12 @@ export function WorkoutsAnimatedFAB({
             extended={extended}
             visible={visible}
             animateFrom="left"
-            iconMode="static"
             style={[
                 {
                     left: Spacing.three,
-                    bottom: BottomTabInset + insets.bottom + Spacing.four
+                    bottom: BottomTabInset + insets.bottom + Spacing.four,
+                    position: "absolute",
+                    ...(extended ? {} : {width: 56})
                 }, style
             ]}
             onPress={onPress}
