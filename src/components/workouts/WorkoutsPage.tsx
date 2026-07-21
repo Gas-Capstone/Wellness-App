@@ -34,6 +34,7 @@ export default function WorkoutsPage() {
     const getAndSetCompletedWorkouts = () => {
         getCompletedWorkouts(user).then((data) => {
             setCompletedWorkouts(data)
+            console.log("Completed workouts: ", data)
         }).catch((error) => console.log("Error fetching completed workouts: ", error))
     }
 

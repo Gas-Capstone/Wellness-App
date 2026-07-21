@@ -21,9 +21,17 @@ export async function getCompletedWorkouts(user){
         .select(`
             id,
             duration_min,
-            workouts (*)
+            completed_at,
+            workouts ( name )
         `)
         .eq("user_id", user.id)
     if (error) console.log("Error fetching completed workouts: ", error)
-    return data
+
+    
+    return (data ?? []).map((session) => ({
+        id: session.id,
+        duration_min: session.duration_min,
+        completed_at: session.completed_at,
+        name: session.workouts?.name
+    }))
 }
