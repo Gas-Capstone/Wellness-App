@@ -13,7 +13,7 @@ type workoutCardProps = {
     onPress: () => void;
 }
 
-export function WorkoutCard({ workout, user, onPress }: workoutCardProps){
+export function WorkoutCard({ workout, onPress }: workoutCardProps){
     let difficultyDisplay = workout.difficulty.charAt(0).toUpperCase() + workout.difficulty.slice(1)
     return (
         <Card mode="contained" style={{ width: "100%", alignSelf: "stretch"}}>

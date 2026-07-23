@@ -34,24 +34,31 @@ export default function WorkoutsPage() {
         setSelectedTag(tag)
     }
 
-    const getAndSetCompletedWorkouts = () => {
+    const getAndSetCompletedWorkouts = async () => {
         getCompletedWorkouts(user).then((data) => {
             setCompletedWorkouts(data)
-            console.log("Completed workouts: ", data)
-        }).catch((error) => console.log("Error fetching completed workouts: ", error))
-    }
+        }).catch((error) => {
+            console.log("Error fetching completed workouts: ", error)
+            setCompletedWorkouts([])
+        }
+        )}
 
     const handleStart = (workout) => {
         setSelectedWorkout(workout)
         setStartModalVisible(true)
     }
 
-    const handleCompletion = (user, workout) => {
-        setWorkoutComplete(user, workout)
-        getAndSetCompletedWorkouts()
+    const handleCompletion = async (workout, mins) => {
+        const completedWorkout = {...workout, duration_min: mins}
+        setWorkoutComplete(user, completedWorkout)
+        console.log("Workout completed: ", workout.name, workout.duration_min)
+        setStartModalVisible(false)
+        await getAndSetCompletedWorkouts()
     }
 
     useEffect(() => {
+        if (!user?.id) return
+
         getWorkouts().then((data) => {
             setWorkoutList(data)
             let tags = [... new Set(data?.flatMap((workout) => workout.goal_tags ?? []))].sort()
@@ -87,12 +94,14 @@ export default function WorkoutsPage() {
                             onDismiss={() => setCompletedModalVisible(false)}
                             workouts={completedWorkouts}
                         />
+                        {selectedWorkout?.id &&(
                         <StartWorkoutModal
                             visible={startModalVisible}
                             user={user}
                             onDismiss={() => setStartModalVisible(false)}
                             workout={selectedWorkout}
-                        />
+                            onStart={(workout, mins) => handleCompletion(workout, mins)}
+                        />)}
                     </>
                 }
 
@@ -126,7 +135,6 @@ export default function WorkoutsPage() {
                     <WorkoutCard
                         key={workout.id}
                         workout={workout}
-                        user={user}
                         onPress={() => handleStart(workout)}
                     />
                 ))}

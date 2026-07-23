@@ -25,6 +25,7 @@ export async function getCompletedWorkouts(user){
             workouts ( name )
         `)
         .eq("user_id", user.id)
+        .order("completed_at", { ascending: false })
     if (error) console.log("Error fetching completed workouts: ", error)
 
     

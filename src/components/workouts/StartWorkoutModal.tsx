@@ -12,7 +12,7 @@ type startWorkoutProps = {
     workout: Object;
     user: User;
     onDismiss: () => void;
-    onStart?: (workout: Object) => void;
+    onStart?: (workout: Object, mins: Number) => void;
 }
 
 export function StartWorkoutModal({ visible, workout, user, onDismiss, onStart }: startWorkoutProps) {
@@ -39,11 +39,15 @@ export function StartWorkoutModal({ visible, workout, user, onDismiss, onStart }
                             <TextInput
                                 label="Set minutes"
                                 mode="outlined"
-                                value={mins.toString()}
+                                value={mins?.toString()}
                                 onChangeText={(text) => setMins(Number(text))}
                             />
                         </VStack>
                     </Card.Content>
+                    <Card.Actions>
+                        <Button onPress={onDismiss}>Cancel</Button>
+                        <Button mode="contained" onPress={onStart ? () => onStart(workout, mins) : () => null}>Start Workout</Button>
+                    </Card.Actions>
                 </Card>
             </Modal>
         </>
