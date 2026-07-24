@@ -12,7 +12,8 @@ export const styles = StyleSheet.create({
         flexDirection: "column",
         flexWrap: "wrap",
         alignSelf: "stretch",
-        alignItems: "stretch"
+        alignItems: "stretch",
+        justifyContent: "center"
       },
       safeAreaView: {
         flex: 1,
