@@ -1,8 +1,10 @@
 import { useState, useEffect, useContext } from "react"
 import { userContext } from "../context/userContext";
+import { workoutSessionContext } from "../context/workoutSessionContext";
 import { getCompletedWorkouts, getWorkouts, setWorkoutComplete } from "@/lib/supabaseFunctions";
 import { WorkoutCard } from "./WorkoutCard";
 import { ScreenView } from "../ui/ScreenView";
+import { useRouter, usePathname } from "expo-router"
 import { Chip, Divider } from "react-native-paper";
 import { styles } from "@/constants/styles";
 import { HStack } from "../ui/hstack";
@@ -15,7 +17,9 @@ import { CompletedWorkoutsModal } from "./CompletedWorkoutsModal";
 import { StartWorkoutModal } from "./StartWorkoutModal";
 
 export default function WorkoutsPage() {
+    const router = useRouter();
     const { user } = useContext(userContext)
+    const { startSession } = useContext(workoutSessionContext)
     const [ workoutList, setWorkoutList ] = useState([])
     const [ workoutTags, setWorkoutTags ] = useState([])
     const [ selectedTag, setSelectedTag ] = useState<String>("all")
@@ -48,6 +52,16 @@ export default function WorkoutsPage() {
         setStartModalVisible(true)
     }
 
+    const handleTimer = (workout, mins) => {
+        const completedWorkout= {...workout, duration_min: mins}
+        startSession(workout, mins)
+        setStartModalVisible(false)
+        router.navigate({
+            pathname: "/workouttimer",
+            params: { workoutId: String(workout.id) }
+        })
+    }
+
     const handleCompletion = async (workout, mins) => {
         const completedWorkout = {...workout, duration_min: mins}
         setWorkoutComplete(user, completedWorkout)
@@ -75,9 +89,9 @@ export default function WorkoutsPage() {
             1. add workout display cards DONE
             2. add ability to filter workouts DONE
             3. add ability to add workout to "completed" WIP
-            4. add ability to view completed workouts
-            5. add "settings" modal before starting workout
-            6. add workout timer
+            4. add ability to view completed workouts DONE
+            5. add "settings" modal before starting workout DONE
+            6. add workout timer WIP
             7. Add calendar
             */}
             <ScreenView
@@ -100,7 +114,7 @@ export default function WorkoutsPage() {
                             user={user}
                             onDismiss={() => setStartModalVisible(false)}
                             workout={selectedWorkout}
-                            onStart={(workout, mins) => handleCompletion(workout, mins)}
+                            onStart={(workout, mins) => handleTimer(workout, mins)}
                         />)}
                     </>
                 }

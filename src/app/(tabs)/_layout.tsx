@@ -11,18 +11,10 @@ import "@/global.css";
 SplashScreen.preventAutoHideAsync();
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-  const isDark = colorScheme === "dark";
-  const curTheme = isDark ? MD3DarkTheme : MD3LightTheme;
-  const themeProviderTheme = isDark ? DarkTheme : DefaultTheme;
   return (
-    <GluestackUIProvider mode="dark">
-      <PaperProvider theme={curTheme}>
-        <ThemeProvider value={themeProviderTheme}>
-          <AnimatedSplashOverlay />
-          <AppTabs />
-        </ThemeProvider>
-      </PaperProvider>
-    </GluestackUIProvider>
+    <>
+      <AnimatedSplashOverlay />
+      <AppTabs />
+    </>
   );
 }
