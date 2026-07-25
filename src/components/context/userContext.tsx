@@ -1,32 +1,44 @@
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, useEffect, createContext } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient";
 
-const userContext = createContext(null);
+export type UserContextType = {
+  user: User | null;
+  setUser: (u: User | null) => void;
+  logout: () => Promise<void>;
+};
 
-const UserProvider = ({ children }) => {
-    const [ user, setUser ] = useState<User | null>(null);
+export const userContext = createContext<UserContextType | null>(null);
 
-    useEffect(() => {
-        supabase.auth.getUser().then(({data}) => {
-            setUser(data.user)
+type UserProviderProps = {
+  children: React.ReactNode;
+};
 
-        })
-        const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            (_event, session) => {
-                setUser(session?.user ?? null)
-            },
-        );
+export const UserProvider = ({ children }: UserProviderProps) => {
+  const [user, setUser] = useState<User | null>(null);
 
-        return () => subscription.unsubscribe()
-    }, [])
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+    });
 
-    let contextData = { user, setUser }
-    return (
-        <userContext.Provider value={contextData}>
-            {children}
-        </userContext.Provider>
-    )
-}
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
 
-export { userContext, UserProvider }
+    return () => subscription.unsubscribe();
+  }, []);
+
+  async function logout() {
+    await supabase.auth.signOut();
+    setUser(null);
+  }
+
+  return (
+    <userContext.Provider value={{ user, setUser, logout }}>
+      {children}
+    </userContext.Provider>
+  );
+};
