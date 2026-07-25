@@ -80,6 +80,7 @@ const WorkoutSessionProvider = ({ children }) => {
     }
     
     const getElapsedTime = () => {
+        // returns elapsed time in milliseconds
         if (!workoutSession) return 0
         if (workoutSession.status === "active" && workoutSession.startedAt != null) {
             return workoutSession.accumulatedTime + (Date.now() - workoutSession.startedAt)

@@ -1,10 +1,10 @@
-import { useState, useEffect, useContext } from "react"
+import { useState, useEffect, useContext, useCallback } from "react"
 import { userContext } from "../context/userContext";
 import { workoutSessionContext } from "../context/workoutSessionContext";
 import { getCompletedWorkouts, getWorkouts, setWorkoutComplete } from "@/lib/supabaseFunctions";
 import { WorkoutCard } from "./WorkoutCard";
 import { ScreenView } from "../ui/ScreenView";
-import { useRouter, usePathname } from "expo-router"
+import { useRouter, usePathname, useFocusEffect } from "expo-router"
 import { Chip, Divider } from "react-native-paper";
 import { styles } from "@/constants/styles";
 import { HStack } from "../ui/hstack";
@@ -62,14 +62,6 @@ export default function WorkoutsPage() {
         })
     }
 
-    const handleCompletion = async (workout, mins) => {
-        const completedWorkout = {...workout, duration_min: mins}
-        setWorkoutComplete(user, completedWorkout)
-        console.log("Workout completed: ", workout.name, workout.duration_min)
-        setStartModalVisible(false)
-        await getAndSetCompletedWorkouts()
-    }
-
     useEffect(() => {
         if (!user?.id) return
 
@@ -81,6 +73,14 @@ export default function WorkoutsPage() {
 
         getAndSetCompletedWorkouts()
     }, [user])
+    
+    useFocusEffect(
+        // grabs completed workouts whenever page is focused
+        useCallback(() => {
+            if (!user?.id) return
+            getAndSetCompletedWorkouts()
+        }, [user?.id])
+    )
 
     const filteredWorkouts = getWorkoutsWithTag(workoutList, selectedTag)
     return (

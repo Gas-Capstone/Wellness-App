@@ -12,19 +12,47 @@ import { HStack } from "@/components/ui/hstack";
 import { VStack } from "@/components/ui/vstack";
 import { CircleTimer } from "@/components/ui/CircleTimer";
 
+import { setWorkoutComplete } from "@/lib/supabaseFunctions";
+
 export default function WorkoutTimerPage() {
     const router = useRouter()
     const { user } = useContext(userContext)
     const { workoutSession, completeSession, pauseSession, resumeSession, clearSession, getElapsedTime } = useContext(workoutSessionContext)
-    const [ secondsLeft, setSecondsLeft ] = useState(0);
-    const { workoutId } = useLocalSearchParams<{
-        workoutId: string;
-    }>();
+
+    // vars for timer
+    const [now, setNow] = useState(Date.now());
+    const totalMS = workoutSession.plannedDuration * 60 * 1000
+    const elapsedMS = getElapsedTime()
+    const remainingMS = Math.max(totalMS - elapsedMS, 0)
+    const remainingMins = workoutSession.status === "complete" ? 0 : Math.floor(remainingMS / 60000)
+    const remainingSecs = workoutSession.status === "complete" ? 0 : Math.floor((remainingMS % 60000) / 1000)
+    const timerLabel = `${remainingMins}:${remainingSecs.toString().padStart(2, "0")}`
+    const timerProgress = workoutSession.status === "complete"
+            ? 0
+            : totalMS > 0
+                ? remainingMS / totalMS
+                : 0
+    
+
 
     useEffect(() => {
-        setSecondsLeft(workoutSession.duration_min * 60)
+        // sets a "tick" every second to force a re-render of the timer, and keep the timecheck going
+        if (workoutSession?.status !== "active") return
+        const id = setInterval(() => setNow(Date.now()), 1000)
+        return () => clearInterval(id)
 
-    })
+    }, [workoutSession?.status])
+
+    useEffect(() => {
+        // fires when timer is finished
+        console.log("Progress check: ", timerProgress)
+        if (workoutSession?.status !== "active") return
+        if (timerProgress === 0) {
+            setWorkoutComplete(user, workoutSession.workout)
+            completeSession()
+        }
+    }, [timerProgress])
+
     return (
         <ScreenView
             header={
@@ -44,6 +72,7 @@ export default function WorkoutTimerPage() {
                 <Button mode="contained" onPress={() => pauseSession()}>Pause Session</Button>
                 <Button mode="contained" onPress={() => resumeSession()}>Resume Session</Button>
                 <Button mode="contained" onPress={() => completeSession()}>Complete Session</Button>
+                <CircleTimer progress={timerProgress} label={timerLabel} duration={1000} />
             </VStack>
         </ScreenView>
     )
