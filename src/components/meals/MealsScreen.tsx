@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ScrollView, View } from "react-native";
-import { ActivityIndicator, Chip, Searchbar, Text } from "react-native-paper";
+import { ActivityIndicator, Button, Chip, Text } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { ThemedView } from "@/components/themed-view";
@@ -20,6 +20,7 @@ import {
   removeFridgeItem,
 } from "@/lib/meals/queries";
 
+import { AddIngredientsModal } from "./AddIngredientsModal";
 import { RecipeCard } from "./RecipeCard";
 
 const ERROR_COLOR = "#ff4d4f";
@@ -37,7 +38,7 @@ export default function MealsScreen() {
   const [fridgeLoading, setFridgeLoading] = useState(false);
   const [mutationError, setMutationError] = useState("");
 
-  const [query, setQuery] = useState("");
+  const [modalVisible, setModalVisible] = useState(false);
 
   const loadCatalog = () => {
     setCatalogLoading(true);
@@ -68,48 +69,34 @@ export default function MealsScreen() {
 
   const ingredientName = (id: number) => ingredients.find((i) => i.id === id)?.name ?? "Unknown";
 
-  const handleAddIngredient = async (ingredientId: number) => {
+  // Add or remove an ingredient depending on whether it's already in the fridge.
+  // Optimistic: the UI updates immediately and rolls back if the write fails.
+  const toggleFridgeItem = async (ingredient: Ingredient) => {
     if (!user) return;
-    setMutationError("");
-    setFridgeIds((prev) => new Set(prev).add(ingredientId));
-    setQuery("");
-    try {
-      await addFridgeItem(user.id, ingredientId);
-    } catch (error) {
-      setFridgeIds((prev) => {
-        const next = new Set(prev);
-        next.delete(ingredientId);
-        return next;
-      });
-      setMutationError(error instanceof Error ? error.message : "Couldn't add that ingredient");
-    }
-  };
-
-  const handleRemoveIngredient = async (ingredientId: number) => {
-    if (!user) return;
+    const id = ingredient.id;
+    const had = fridgeIds.has(id);
     setMutationError("");
     setFridgeIds((prev) => {
       const next = new Set(prev);
-      next.delete(ingredientId);
+      if (had) next.delete(id);
+      else next.add(id);
       return next;
     });
     try {
-      await removeFridgeItem(user.id, ingredientId);
+      if (had) await removeFridgeItem(user.id, id);
+      else await addFridgeItem(user.id, id);
     } catch (error) {
-      setFridgeIds((prev) => new Set(prev).add(ingredientId));
-      setMutationError(error instanceof Error ? error.message : "Couldn't remove that ingredient");
+      setFridgeIds((prev) => {
+        const next = new Set(prev);
+        if (had) next.add(id);
+        else next.delete(id);
+        return next;
+      });
+      setMutationError(error instanceof Error ? error.message : "Couldn't update your fridge");
     }
   };
 
   const fridgeItems = ingredients.filter((i) => fridgeIds.has(i.id));
-
-  const searchResults = useMemo(() => {
-    const trimmed = query.trim().toLowerCase();
-    if (!trimmed) return [];
-    return ingredients.filter(
-      (i) => !fridgeIds.has(i.id) && i.name.toLowerCase().includes(trimmed),
-    );
-  }, [query, ingredients, fridgeIds]);
 
   const { ready, almost } = useMemo(() => matchRecipes(recipes, fridgeIds), [recipes, fridgeIds]);
 
@@ -144,27 +131,6 @@ export default function MealsScreen() {
               </VStack>
             ) : (
               <>
-                <Searchbar
-                  placeholder="Search ingredients to add"
-                  value={query}
-                  onChangeText={setQuery}
-                  style={{ alignSelf: "stretch" }}
-                />
-
-                {searchResults.length > 0 && (
-                  <HStack space="sm" style={{ flexWrap: "wrap" }}>
-                    {searchResults.map((item) => (
-                      <Chip key={item.id} mode="outlined" onPress={() => handleAddIngredient(item.id)}>
-                        {item.name}
-                      </Chip>
-                    ))}
-                  </HStack>
-                )}
-
-                {mutationError.length > 0 && (
-                  <Text style={{ color: ERROR_COLOR }}>{mutationError}</Text>
-                )}
-
                 <VStack space="sm" style={{ alignSelf: "stretch" }}>
                   <HStack style={styles.rowBox}>
                     <Text variant="titleMedium">In my fridge</Text>
@@ -181,14 +147,26 @@ export default function MealsScreen() {
                         <Chip
                           key={item.id}
                           mode="flat"
-                          onClose={() => handleRemoveIngredient(item.id)}
+                          onClose={() => toggleFridgeItem(item)}
                           textStyle={{ color: theme.accentMeals }}>
                           {item.name}
                         </Chip>
                       ))}
                     </HStack>
                   ) : (
-                    <Text>Your fridge is empty — search above to add ingredients.</Text>
+                    <Text>Your fridge is empty — add ingredients to get started.</Text>
+                  )}
+
+                  <Button
+                    mode="contained"
+                    icon="plus"
+                    onPress={() => setModalVisible(true)}
+                    style={{ alignSelf: "flex-start" }}>
+                    Add ingredients
+                  </Button>
+
+                  {mutationError.length > 0 && (
+                    <Text style={{ color: ERROR_COLOR }}>{mutationError}</Text>
                   )}
                 </VStack>
 
@@ -229,6 +207,14 @@ export default function MealsScreen() {
             )}
           </VStack>
         </ScrollView>
+
+        <AddIngredientsModal
+          visible={modalVisible}
+          onDismiss={() => setModalVisible(false)}
+          ingredients={ingredients}
+          selectedIds={fridgeIds}
+          onToggle={toggleFridgeItem}
+        />
       </SafeAreaView>
     </ThemedView>
   );
