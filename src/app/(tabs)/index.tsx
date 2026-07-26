@@ -16,17 +16,15 @@ import {
   CompletedWorkout,
 } from "@/components/context/workoutsDataContext";
 import { habitsContext } from "@/components/context/habitsContext";
+import { mealsDataContext } from "@/components/context/mealsDataContext";
 import { getHabitsForDate, isHabitDone } from "@/lib/habits/habits";
+import { matchRecipes } from "@/lib/meals/meals";
 import { getTodaysDate } from "@/lib/time_management/week";
 import { CircleTimer } from "@/components/ui/CircleTimer";
 import { HStack } from "@/components/ui/hstack";
 import { VStack } from "@/components/ui/vstack";
 import { ScreenView } from "@/components/ui/ScreenView";
 import { Spacing } from "@/constants/theme";
-
-// Mock calorie goal — no calorie-tracking data exists yet, so these are placeholders.
-const MOCK_CALORIE_GOAL = 2000;
-const MOCK_CALORIES_CONSUMED = 1450;
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -120,6 +118,17 @@ export default function HomeScreen() {
     habitCompletions: {},
   };
 
+  // Real data, shared with MealsScreen via mealsDataContext.
+  const {
+    recipes,
+    fridgeIds,
+    catalogLoading: mealsLoading,
+  } = useContext(mealsDataContext) ?? {
+    recipes: [],
+    fridgeIds: new Set<number>(),
+    catalogLoading: true,
+  };
+
   const streak = useMemo(
     () => getWorkoutStreak(completedWorkouts),
     [completedWorkouts],
@@ -147,6 +156,16 @@ export default function HomeScreen() {
   );
   const habitsProgress =
     habitsToday.length > 0 ? habitsCompleteToday / habitsToday.length : 0;
+
+  const { ready: readyRecipes, almost: almostRecipes } = useMemo(
+    () => matchRecipes(recipes, fridgeIds),
+    [recipes, fridgeIds],
+  );
+  const totalConsideredRecipes = readyRecipes.length + almostRecipes.length;
+  const recipesReadyProgress =
+    totalConsideredRecipes > 0
+      ? readyRecipes.length / totalConsideredRecipes
+      : 0;
 
   const displayName =
     user?.user_metadata?.full_name || user?.email?.split("@")[0] || "there";
@@ -220,14 +239,18 @@ export default function HomeScreen() {
 
           <VStack style={styles.ringColumn}>
             <CircleTimer
-              progress={MOCK_CALORIES_CONSUMED / MOCK_CALORIE_GOAL}
-              label={`${MOCK_CALORIES_CONSUMED}/${MOCK_CALORIE_GOAL}`}
+              progress={recipesReadyProgress}
+              label={
+                mealsLoading
+                  ? "..."
+                  : `${readyRecipes.length}/${totalConsideredRecipes}`
+              }
               duration={600}
               size={84}
               strokeWidth={8}
-              labelVariant="labelSmall"
+              labelVariant="labelLarge"
             />
-            <Text variant="labelMedium">Calories (mock)</Text>
+            <Text variant="labelMedium">Recipes ready</Text>
           </VStack>
         </HStack>
       </VStack>
@@ -257,7 +280,13 @@ export default function HomeScreen() {
         />
         <QuickLinkCard
           title="Meals"
-          subtitle="Plan or log what you're eating"
+          subtitle={
+            mealsLoading
+              ? "Loading your fridge..."
+              : readyRecipes.length > 0
+                ? `${readyRecipes.length} recipe${readyRecipes.length === 1 ? "" : "s"} ready to cook`
+                : "Add ingredients to your fridge"
+          }
           href="/meals"
           icon="silverware-fork-knife"
         />
