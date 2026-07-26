@@ -233,7 +233,7 @@ export default function HomeScreen() {
         </HStack>
       </VStack>
 
-      <VStack space="sm" style={homeStyles.linksSection}>
+      <VStack space="md" style={homeStyles.linksSection}>
         <Text variant="titleMedium">Jump back in</Text>
 
         <QuickLinkCard

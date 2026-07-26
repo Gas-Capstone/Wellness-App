@@ -199,7 +199,7 @@ export default function MealsScreen() {
               )}
             </VStack>
 
-            <VStack space="sm" style={{ alignSelf: "stretch" }}>
+            <VStack space="md" style={{ alignSelf: "stretch" }}>
               <Text variant="titleMedium">Almost there</Text>
               {almost.length > 0 ? (
                 almost.map(({ recipe, missingIds }) => (

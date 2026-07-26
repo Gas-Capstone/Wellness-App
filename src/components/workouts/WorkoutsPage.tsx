@@ -17,6 +17,7 @@ import { Spacing, TopBadgeInset } from "@/constants/theme";
 import { WorkoutsAnimatedFAB } from "./WorkoutsAnimatedFAB";
 import { CompletedWorkoutsModal } from "./CompletedWorkoutsModal";
 import { StartWorkoutModal } from "./StartWorkoutModal";
+import { VStack } from "../ui/vstack";
 
 export default function WorkoutsPage() {
   const router = useRouter();
@@ -150,6 +151,7 @@ export default function WorkoutsPage() {
           </>
         }
       >
+        <VStack space="md" style={{ alignSelf: "stretch" }}>
         {filteredWorkouts.map((workout) => (
           <WorkoutCard
             key={workout.id}
@@ -157,6 +159,7 @@ export default function WorkoutsPage() {
             onPress={() => handleStart(workout)}
           />
         ))}
+        </VStack>
       </ScreenView>
     </>
   );
