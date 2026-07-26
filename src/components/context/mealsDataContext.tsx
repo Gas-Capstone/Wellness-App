@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useState } from "react";
+import React, { createContext, useCallback, useContext, useState, useEffect } from "react";
 import { Ingredient, Recipe } from "@/lib/meals/meals";
 import {
   addFridgeItem,
@@ -66,6 +66,12 @@ export const MealsDataProvider = ({ children }: MealsDataProviderProps) => {
       })
       .finally(() => setFridgeLoading(false));
   }, [user?.id]);
+
+  useEffect(refreshCatalog, []);
+
+  useEffect(() => {
+    refreshFridge();
+  }, [user, refreshFridge]);
 
   const toggleFridgeItem = useCallback(
     async (ingredient: Ingredient) => {

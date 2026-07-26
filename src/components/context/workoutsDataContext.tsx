@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useState } from "react";
+import React, { createContext, useCallback, useContext, useState, useEffect } from "react";
 import { getCompletedWorkouts, getWorkouts } from "@/lib/supabaseFunctions";
 import { userContext } from "./userContext";
 
@@ -70,6 +70,12 @@ export const WorkoutsDataProvider = ({
       })
       .finally(() => setLoading(false));
   }, [user?.id]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    refreshWorkouts();
+    refreshCompletedWorkouts();
+  }, [user, refreshWorkouts, refreshCompletedWorkouts]);
 
   const contextValue: WorkoutsDataContextType = {
     workoutList,

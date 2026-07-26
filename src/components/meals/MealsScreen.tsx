@@ -40,11 +40,7 @@ export default function MealsScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [fabExtended, setFabExtended] = useState(true);
 
-  useEffect(refreshCatalog, []);
 
-  useEffect(() => {
-    refreshFridge();
-  }, [user, refreshFridge]);
 
   const ingredientName = (id: number) =>
     ingredients.find((i) => i.id === id)?.name ?? "Unknown";

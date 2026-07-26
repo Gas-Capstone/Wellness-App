@@ -55,7 +55,6 @@ export default function WorkoutsPage() {
   };
 
   const handleTimer = (workout: Workout, mins: number) => {
-    const completedWorkout = { ...workout, duration_min: mins };
     startSession(workout, mins);
     setStartModalVisible(false);
     router.navigate({
@@ -72,11 +71,6 @@ export default function WorkoutsPage() {
     setWorkoutTags(tags);
   }, [workoutList]);
 
-  useEffect(() => {
-    if (!user?.id) return;
-    refreshWorkouts();
-    refreshCompletedWorkouts();
-  }, [user, refreshWorkouts, refreshCompletedWorkouts]);
 
   useFocusEffect(
     // grabs completed workouts whenever page is focused
