@@ -1,3 +1,7 @@
+import { Slot, router } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect, useState } from "react";
+import { supabase } from "@/lib/supabaseClient";
 import { Slot, Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
@@ -15,6 +19,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [ready, setReady] = useState(false);
+
   const colorScheme = useColorScheme()
   const isDark = colorScheme === "dark";
   const curTheme = isDark ? MD3DarkTheme : MD3LightTheme;
@@ -40,6 +45,7 @@ export default function RootLayout() {
 
   if (!ready) return null;
 
+  return <Slot />;
   return(
     <SafeAreaProvider>
     <UserProvider>
