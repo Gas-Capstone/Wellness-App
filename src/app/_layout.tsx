@@ -5,16 +5,19 @@ import { supabase } from "@/lib/supabaseClient";
 import { UserProvider } from "@/components/context/userContext";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { WorkoutSessionProvider } from "@/components/context/workoutSessionContext";
+import { HabitsProvider } from "@/components/context/habitsContext";
 import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
 import { MD3DarkTheme, MD3LightTheme, PaperProvider } from "react-native-paper";
 import { ThemeProvider, DarkTheme, DefaultTheme } from "expo-router";
 import { useColorScheme } from "react-native";
 import "@/global.css"
+import { WorkoutsDataProvider } from "@/components/context/workoutsDataContext";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [ready, setReady] = useState(false);
+
   const colorScheme = useColorScheme()
   const isDark = colorScheme === "dark";
   const curTheme = isDark ? MD3DarkTheme : MD3LightTheme;
@@ -44,6 +47,8 @@ export default function RootLayout() {
     <SafeAreaProvider>
     <UserProvider>
       <WorkoutSessionProvider>
+        <WorkoutsDataProvider>
+          <HabitsProvider>
         <GluestackUIProvider mode="dark">
           <PaperProvider theme={curTheme}>
             <ThemeProvider value={themeProviderTheme}>
@@ -55,6 +60,8 @@ export default function RootLayout() {
             </ThemeProvider>
           </PaperProvider>
         </GluestackUIProvider>
+        </HabitsProvider>
+        </WorkoutsDataProvider>
       </WorkoutSessionProvider>
     </UserProvider>
   </SafeAreaProvider>

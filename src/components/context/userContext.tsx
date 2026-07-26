@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext } from "react";
+import { useState, useEffect, createContext, useContext } from "react";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabaseClient";
 
@@ -42,3 +42,12 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     </userContext.Provider>
   );
 };
+
+// Use this instead of `useContext(userContext)` — narrows away the `| null` and throws a clear error if <UserProvider> isn't mounted.
+export function useUserContext() {
+  const ctx = useContext(userContext);
+  if (!ctx) {
+    throw new Error("useUserContext must be used within a <UserProvider>");
+  }
+  return ctx;
+}

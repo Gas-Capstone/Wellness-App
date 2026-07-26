@@ -1,19 +1,305 @@
-import { ScreenPlaceholder } from "@/components/screen-placeholder";
-import { useTheme } from "@/hooks/use-theme";
+import { useContext, useMemo } from "react";
+import { StyleSheet } from "react-native";
+import { useRouter } from "expo-router";
+import {
+  ActivityIndicator,
+  Avatar,
+  Card,
+  IconButton,
+  Text,
+  useTheme,
+} from "react-native-paper";
 
-// Importing from pages
-import HabitsScreen from "./habits";
-import MealsScreen from "./meals";
-import ProfileScreen from "./profile";
-import WorkoutsScreen from "./workouts";
+import { userContext } from "@/components/context/userContext";
+import {
+  workoutsDataContext,
+  CompletedWorkout,
+} from "@/components/context/workoutsDataContext";
+import { habitsContext } from "@/components/context/habitsContext";
+import { getHabitsForDate, isHabitDone } from "@/lib/habits/habits";
+import { getTodaysDate } from "@/lib/time_management/week";
+import { CircleTimer } from "@/components/ui/CircleTimer";
+import { HStack } from "@/components/ui/hstack";
+import { VStack } from "@/components/ui/vstack";
+import { ScreenView } from "@/components/ui/ScreenView";
+import { Spacing } from "@/constants/theme";
 
-void [HabitsScreen, MealsScreen, ProfileScreen, WorkoutsScreen];
+// Mock calorie goal — no calorie-tracking data exists yet, so these are placeholders.
+const MOCK_CALORIE_GOAL = 2000;
+const MOCK_CALORIES_CONSUMED = 1450;
 
-export default function HomeScreen() {
-  return (
-    <ScreenPlaceholder
-      title="Home"
-      description="If you're seeing this at retrospective, I was hit by a car"
-    />
+function getGreeting() {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good morning";
+  if (hour < 18) return "Good afternoon";
+  return "Good evening";
+}
+
+// Counts consecutive days (including today) with at least one completed workout.
+function getWorkoutStreak(completedWorkouts: CompletedWorkout[]) {
+  if (!completedWorkouts.length) return 0;
+
+  const completedDays = new Set(
+    completedWorkouts.map((w) => new Date(w.completed_at).toDateString()),
+  );
+
+  let streak = 0;
+  const cursor = new Date();
+
+  while (completedDays.has(cursor.toDateString())) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return streak;
+}
+
+function getWorkoutsThisWeek(completedWorkouts: CompletedWorkout[]) {
+  const now = new Date();
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay());
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  return completedWorkouts.filter(
+    (w) => new Date(w.completed_at) >= startOfWeek,
+  ).length;
+}
+
+// Workouts have no fixed daily target (unlike habits), so this is simplified to a yes/no.
+function hasWorkoutToday(completedWorkouts: CompletedWorkout[]) {
+  const today = new Date().toDateString();
+  return completedWorkouts.some(
+    (w) => new Date(w.completed_at).toDateString() === today,
   );
 }
+
+// One row in the "Jump back in" section — a pressable card linking to another tab.
+function QuickLinkCard({
+  title,
+  subtitle,
+  href,
+  icon,
+}: {
+  title: string;
+  subtitle: string;
+  href: string;
+  icon: string;
+}) {
+  const router = useRouter();
+  const goTo = () => router.navigate(href as any);
+
+  return (
+    <Card mode="contained" onPress={goTo}>
+      <Card.Title
+        title={title}
+        subtitle={subtitle}
+        left={(props) => <Avatar.Icon {...props} icon={icon} />}
+        right={(props) => (
+          <IconButton {...props} icon="chevron-right" onPress={goTo} />
+        )}
+      />
+    </Card>
+  );
+}
+
+export default function HomeScreen() {
+  const theme = useTheme();
+  const { user } = useContext(userContext) ?? {};
+
+  // Real data, shared with WorkoutsPage via workoutsDataContext.
+  const { completedWorkouts, loading: workoutsLoading } = useContext(
+    workoutsDataContext,
+  ) ?? {
+    completedWorkouts: [] as CompletedWorkout[],
+    loading: true,
+  };
+
+  // Real data, shared with HabitsScreen via habitsContext.
+  const { habitArray, habitCompletions } = useContext(habitsContext) ?? {
+    habitArray: [],
+    habitCompletions: {},
+  };
+
+  const streak = useMemo(
+    () => getWorkoutStreak(completedWorkouts),
+    [completedWorkouts],
+  );
+  const workoutsThisWeek = useMemo(
+    () => getWorkoutsThisWeek(completedWorkouts),
+    [completedWorkouts],
+  );
+  const workoutDoneToday = useMemo(
+    () => hasWorkoutToday(completedWorkouts),
+    [completedWorkouts],
+  );
+
+  const today = getTodaysDate();
+  const habitsToday = useMemo(
+    () => getHabitsForDate(habitArray, today),
+    [habitArray, today],
+  );
+  const habitsCompleteToday = useMemo(
+    () =>
+      habitsToday.filter((habit) =>
+        isHabitDone(habit.id, today, habitCompletions),
+      ).length,
+    [habitsToday, today, habitCompletions],
+  );
+  const habitsProgress =
+    habitsToday.length > 0 ? habitsCompleteToday / habitsToday.length : 0;
+
+  const displayName =
+    user?.user_metadata?.full_name || user?.email?.split("@")[0] || "there";
+
+  return (
+    <ScreenView
+      header={
+        <VStack space="xs" style={styles.header}>
+          <Text variant="bodyLarge">{getGreeting()},</Text>
+          <Text variant="displaySmall">{displayName}</Text>
+        </VStack>
+      }
+    >
+      <Card mode="contained" style={styles.streakCard}>
+        <Card.Content style={styles.streakContent}>
+          <Avatar.Icon icon="fire" size={56} color={theme.colors.onPrimary} />
+
+          <VStack style={styles.streakColumn}>
+            {workoutsLoading ? (
+              <ActivityIndicator />
+            ) : (
+              <Text variant="displaySmall">{streak}</Text>
+            )}
+            <Text variant="labelMedium">Day streak</Text>
+          </VStack>
+
+          <VStack
+            style={[
+              styles.streakColumn,
+              styles.streakDivider,
+              { borderLeftColor: theme.colors.outlineVariant },
+            ]}
+          >
+            {workoutsLoading ? (
+              <ActivityIndicator />
+            ) : (
+              <Text variant="headlineMedium">{workoutsThisWeek}</Text>
+            )}
+            <Text variant="labelMedium">This week</Text>
+          </VStack>
+        </Card.Content>
+      </Card>
+
+      <VStack space="sm" style={styles.todaySection}>
+        <Text variant="titleMedium">Today</Text>
+
+        <HStack space="md" style={styles.ringRow}>
+          <VStack style={styles.ringColumn}>
+            <CircleTimer
+              progress={habitsProgress}
+              label={`${habitsCompleteToday}/${habitsToday.length}`}
+              duration={600}
+              size={84}
+              strokeWidth={8}
+              labelVariant="labelLarge"
+            />
+            <Text variant="labelMedium">Habits</Text>
+          </VStack>
+
+          <VStack style={styles.ringColumn}>
+            <CircleTimer
+              progress={workoutDoneToday ? 1 : 0}
+              label={workoutDoneToday ? "Done" : "Not yet"}
+              duration={600}
+              size={84}
+              strokeWidth={8}
+              labelVariant="labelLarge"
+            />
+            <Text variant="labelMedium">Workout</Text>
+          </VStack>
+
+          <VStack style={styles.ringColumn}>
+            <CircleTimer
+              progress={MOCK_CALORIES_CONSUMED / MOCK_CALORIE_GOAL}
+              label={`${MOCK_CALORIES_CONSUMED}/${MOCK_CALORIE_GOAL}`}
+              duration={600}
+              size={84}
+              strokeWidth={8}
+              labelVariant="labelSmall"
+            />
+            <Text variant="labelMedium">Calories (mock)</Text>
+          </VStack>
+        </HStack>
+      </VStack>
+
+      <VStack space="sm" style={styles.linksSection}>
+        <Text variant="titleMedium">Jump back in</Text>
+
+        <QuickLinkCard
+          title="Today's habits"
+          subtitle={
+            habitsToday.length > 0
+              ? `${habitsCompleteToday}/${habitsToday.length} done today`
+              : "No habits scheduled today"
+          }
+          href="/habits"
+          icon="timer-outline"
+        />
+        <QuickLinkCard
+          title="Workouts"
+          subtitle={
+            workoutsThisWeek > 0
+              ? `${workoutsThisWeek} completed this week`
+              : "Find something to do today"
+          }
+          href="/workouts"
+          icon="dumbbell"
+        />
+        <QuickLinkCard
+          title="Meals"
+          subtitle="Plan or log what you're eating"
+          href="/meals"
+          icon="silverware-fork-knife"
+        />
+      </VStack>
+    </ScreenView>
+  );
+}
+
+const styles = StyleSheet.create({
+  header: {
+    alignSelf: "flex-start",
+  },
+  streakCard: {
+    width: "100%",
+  },
+  streakContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.four,
+    paddingVertical: Spacing.three,
+  },
+  streakColumn: {
+    flex: 1,
+    alignItems: "center",
+    gap: Spacing.one,
+  },
+  streakDivider: {
+    borderLeftWidth: StyleSheet.hairlineWidth,
+    paddingLeft: Spacing.four,
+  },
+  todaySection: {
+    alignSelf: "stretch",
+  },
+  ringRow: {
+    justifyContent: "space-evenly",
+    alignSelf: "stretch",
+  },
+  ringColumn: {
+    alignItems: "center",
+    gap: Spacing.one,
+  },
+  linksSection: {
+    alignSelf: "stretch",
+  },
+});
