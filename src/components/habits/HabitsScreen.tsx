@@ -79,6 +79,7 @@ export default function HabitsScreen() {
           </>
         }
       >
+        <VStack space="md" style={{ alignSelf: "stretch" }}>
         {habitsForDay.length !== 0 &&
           habitsForDay.map((habit) => (
             <HabitCard
@@ -97,6 +98,7 @@ export default function HabitsScreen() {
             <Text>No habits for today...</Text>
           </Center>
         )}
+        </VStack>
       </ScreenView>
     </>
   );

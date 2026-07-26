@@ -49,8 +49,6 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <UserProvider>
-        {/* WorkoutsDataProvider and MealsDataProvider both read the current
-            user via userContext, so they must stay nested inside UserProvider. */}
         <WorkoutsDataProvider>
           <MealsDataProvider>
             <HabitsProvider>

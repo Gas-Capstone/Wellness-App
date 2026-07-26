@@ -7,6 +7,7 @@ import {
   useTheme,
   Chip,
   DataTable,
+  List
 } from "react-native-paper";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
@@ -36,6 +37,16 @@ export function CompletedWorkoutsModal({
   const [numberOfItemsPerPageList] = useState([2, 3, 4]);
   const [itemsPerPage, setItemsPerPage] = useState(numberOfItemsPerPageList[0]);
 
+  const workoutsByDate = workouts.reduce<Record<string, CompletedWorkout[]>>(
+    (acc, workout) => {
+      const date = format(new Date(workout.completed_at), "yyyy-MM-dd");
+      (acc[date] ??= []).push(workout);
+      return acc;
+    },
+    {},
+  );
+  const dates = Object.keys(workoutsByDate).sort().reverse(); // newest first
+
   const from = tablePage * itemsPerPage;
   const to = Math.min((tablePage + 1) * itemsPerPage, workouts.length);
   useEffect(() => {
@@ -57,39 +68,15 @@ export function CompletedWorkoutsModal({
 
           <Card.Content>
             {/* main modal content here */}
-            <DataTable style={{ width: "100%" }}>
-              <DataTable.Header>
-                <DataTable.Title style={{ flex: 4 }}>Workout</DataTable.Title>
-                <DataTable.Title style={{ flex: 1 }}>Mins</DataTable.Title>
-                <DataTable.Title style={{ flex: 1 }}>Date</DataTable.Title>
-              </DataTable.Header>
-
-              {workouts.slice(from, to).map((workout) => (
-                <DataTable.Row key={workout.id}>
-                  <DataTable.Cell style={{ flex: 4 }}>
-                    {workout.name}
-                  </DataTable.Cell>
-                  <DataTable.Cell style={{ flex: 1 }}>
-                    {workout.duration_min}
-                  </DataTable.Cell>
-                  <DataTable.Cell style={{ flex: 1 }}>
-                    {format(new Date(workout.completed_at), "MMM d")}
-                  </DataTable.Cell>
-                </DataTable.Row>
+            <List.AccordionGroup>
+              {dates.map((date) => (
+                <List.Accordion key={date} id={date} title={date} style={{ backgroundColor: theme.colors.surfaceVariant}}>
+                  {workoutsByDate[date].map((workout) => (
+                    <List.Item key={workout.id} title={workout.name} description={`${workout.duration_min} min(s)`}/>
+                  ))}
+                </List.Accordion>
               ))}
-
-              <DataTable.Pagination
-                page={tablePage}
-                numberOfPages={Math.ceil(workouts.length / itemsPerPage)}
-                onPageChange={(page) => setTablePage(page)}
-                label={`${from + 1}-${to} of ${workouts.length}`}
-                numberOfItemsPerPageList={numberOfItemsPerPageList}
-                numberOfItemsPerPage={itemsPerPage}
-                onItemsPerPageChange={setItemsPerPage}
-                showFastPaginationControls
-                selectPageDropdownLabel={"Rows per page"}
-              />
-            </DataTable>
+            </List.AccordionGroup>
           </Card.Content>
         </Card>
       </Modal>

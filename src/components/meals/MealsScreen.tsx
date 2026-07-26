@@ -72,6 +72,7 @@ export default function MealsScreen() {
     setFabExtended(nativeEvent.contentOffset.y <= 0);
   };
 
+
   if (!sessionLoading && !user) {
     return (
       <ScreenView>
