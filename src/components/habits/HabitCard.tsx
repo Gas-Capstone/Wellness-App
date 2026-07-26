@@ -22,7 +22,7 @@ export function HabitCard({
 
 
     return (
-        <Card mode="contained">
+        <Card mode="contained" style={{ width: "100%", alignSelf: "stretch"}}>
             <Card.Title
                 title={<Text style={{
                     textDecorationLine: isDone ? "line-through" : "none",

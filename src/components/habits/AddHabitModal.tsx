@@ -1,4 +1,4 @@
-import { Button, Modal, Text, useTheme, Portal, Card, TextInput, Chip } from "react-native-paper"
+import { Button, Modal, Text, useTheme, Card, TextInput, Chip } from "react-native-paper"
 import DateTimePicker, { DateTimePickerEvent, DateTimePickerAndroid } from "@react-native-community/datetimepicker"
 import { useState } from "react"
 import { format } from "date-fns"
@@ -78,56 +78,51 @@ export function AddHabitModal({ visible, onDismiss, onSave }: AddHabitModalProps
 
     return (
         <>
-            <Portal>
-                <Modal
-                   visible={visible}
-                   onDismiss={onDismiss}
-                   contentContainerStyle={styles.modalContent}
-                >
-                    <Card mode="contained" style={styles.modalCard}>
-                        <Card.Title
-                            title={<Text variant="titleLarge">Add Habit</Text>}
-                        />
-                        <Card.Content style={styles.stepContainer}>
-                            {/* main modal content */}
-                            <VStack space="md" style={{ alignSelf: "stretch" }}>
-                                <TextInput
-                                    label="Habit Title"
-                                    mode="outlined"
-                                    value={habitTitle}
-                                    onChangeText={(text) => setHabitTitle(text)}
-                                />
-                                <Button compact onPress={showTimepicker}>Pick time of day</Button>
-                                <Center>
-                                    <Text>Selected: {format(time, 'h:mm aa')}</Text>
-                                </Center>
-                                <VStack space="sm" style={{ alignSelf: "stretch" }}>
-                                    <HStack space="sm" style={{ justifyContent: "center"}}>
-                                        {WEEKDAY_LABELS.slice(0, 4).map((label, index) =>
-                                            renderWeekdayChip(label, index as Weekday)
-                                        )}
-                                    </HStack>
-
-                                    <HStack space="sm" style={{ justifyContent: "center" }}>
-                                        {WEEKDAY_LABELS.slice(4).map((label, index) =>
-                                            renderWeekdayChip(label, (index + 4) as Weekday)
-                                        )}
-                                    </HStack>
-                                </VStack>
+            <Modal
+               visible={visible}
+               onDismiss={onDismiss}
+               contentContainerStyle={styles.modalContent}
+            >
+                <Card mode="contained" style={styles.modalCard}>
+                    <Card.Title
+                        title={<Text variant="titleLarge">Add Habit</Text>}
+                    />
+                    <Card.Content style={styles.stepContainer}>
+                        {/* main modal content */}
+                        <VStack space="md" style={{ alignSelf: "stretch" }}>
+                            <TextInput
+                                label="Habit Title"
+                                mode="outlined"
+                                value={habitTitle}
+                                onChangeText={(text) => setHabitTitle(text)}
+                            />
+                            <Button compact onPress={showTimepicker}>Pick time of day</Button>
+                            <Center>
+                                <Text>Selected: {format(time, 'h:mm aa')}</Text>
+                            </Center>
+                            <VStack space="sm" style={{ alignSelf: "stretch" }}>
+                                <HStack space="sm" style={{ justifyContent: "center"}}>
+                                    {WEEKDAY_LABELS.slice(0, 4).map((label, index) =>
+                                        renderWeekdayChip(label, index as Weekday)
+                                    )}
+                                </HStack>
+                                <HStack space="sm" style={{ justifyContent: "center" }}>
+                                    {WEEKDAY_LABELS.slice(4).map((label, index) =>
+                                        renderWeekdayChip(label, (index + 4) as Weekday)
+                                    )}
+                                </HStack>
                             </VStack>
-
-                        </Card.Content>
-
-                        {/* row of components at bottom */}
-                        <Card.Actions>
-                            <HStack style={styles.rowBox}>
-                                <Button onPress={onDismiss}>Cancel</Button>
-                                <Button mode="contained" onPress={handleSave}>Add</Button>
-                            </HStack>
-                        </Card.Actions>
-                    </Card>
-                </Modal>
-            </Portal>
+                        </VStack>
+                    </Card.Content>
+                    {/* row of components at bottom */}
+                    <Card.Actions>
+                        <HStack style={styles.rowBox}>
+                            <Button onPress={onDismiss}>Cancel</Button>
+                            <Button mode="contained" onPress={handleSave}>Add</Button>
+                        </HStack>
+                    </Card.Actions>
+                </Card>
+            </Modal>
         </>
     )
 }

@@ -4,38 +4,38 @@ import { BottomTabInset, Spacing } from "@/constants/theme";
 import { StyleProp, ViewStyle } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-
-type habitAnimatedFABProps = {
+type workoutsAnimatedFABProps = {
     extended: boolean;
     label?: string;
     visible?: boolean;
     animateFrom?: "left" | "right";
     style?: StyleProp<ViewStyle>;
     onPress: () => void;
-};
+}
 
-export function HabitAnimatedFAB({
+export function WorkoutsAnimatedFAB({
     extended,
-    label="Add habit",
+    label="View completed workouts",
     visible=true,
     animateFrom="right",
     onPress,
     style,
-}: habitAnimatedFABProps) {
+}: workoutsAnimatedFABProps) {
     const insets = useSafeAreaInsets()
     return (
-        <AnimatedFAB
-            icon="plus"
+        <AnimatedFAB    
+            icon="view-list"
             label={label}
             extended={extended}
             visible={visible}
+            animateFrom="left"
             style={[
-            {
-                right: Spacing.three,
-                bottom: BottomTabInset + insets.bottom + Spacing.four,
-                position: "absolute",
-                ...(extended ? {} : {width: 56})
-            }, style
+                {
+                    left: Spacing.three,
+                    bottom: BottomTabInset + insets.bottom + Spacing.four,
+                    position: "absolute",
+                    ...(extended ? {} : {width: 56})
+                }, style
             ]}
             onPress={onPress}
         />

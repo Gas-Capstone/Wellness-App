@@ -1,28 +1,32 @@
+import { useContext, useMemo } from "react";
 import { StyleSheet } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
+import {
+  ActivityIndicator,
+  Avatar,
+  Card,
+  IconButton,
+  Text,
+  useTheme,
+} from "react-native-paper";
 
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { BottomTabInset, MaxContentWidth, Spacing } from "@/constants/theme";
+import { userContext } from "@/components/context/userContext";
+import {
+  workoutsDataContext,
+  CompletedWorkout,
+} from "@/components/context/workoutsDataContext";
+import { habitsContext } from "@/components/context/habitsContext";
+import { getHabitsForDate, isHabitDone } from "@/lib/habits/habits";
+import { getTodaysDate } from "@/lib/time_management/week";
+import { CircleTimer } from "@/components/ui/CircleTimer";
+import { HStack } from "@/components/ui/hstack";
+import { VStack } from "@/components/ui/vstack";
+import { ScreenView } from "@/components/ui/ScreenView";
+import { Spacing } from "@/constants/theme";
 
-// ---- Mock data ------------------------------------------------------
-// Placeholder content only — swap these for real state/data once the
-// habit-tracking logic is wired up.
-
-const MOCK_USER_NAME = "Fake Person";
-
-const MOCK_STATS = [
-  { label: "Day streak", value: "999" },
-  { label: "Done today", value: "1/69" },
-  { label: "Days Left Alive", value: "3" },
-];
-
-const MOCK_HABITS = [
-  { id: "1", name: "Rick and Morty Marathon", time: "3:00 AM", done: true },
-  { id: "2", name: "Go to Bed", time: "2:00 PM", done: true },
-  { id: "3", name: "Wake Up", time: "2:15 PM", done: false },
-  { id: "4", name: "Rick and Morty Marathon", time: "2:20 PM", done: false },
-];
+// Mock calorie goal — no calorie-tracking data exists yet, so these are placeholders.
+const MOCK_CALORIE_GOAL = 2000;
+const MOCK_CALORIES_CONSUMED = 1450;
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -31,141 +35,271 @@ function getGreeting() {
   return "Good evening";
 }
 
-export default function HomeScreen() {
+// Counts consecutive days (including today) with at least one completed workout.
+function getWorkoutStreak(completedWorkouts: CompletedWorkout[]) {
+  if (!completedWorkouts.length) return 0;
+
+  const completedDays = new Set(
+    completedWorkouts.map((w) => new Date(w.completed_at).toDateString()),
+  );
+
+  let streak = 0;
+  const cursor = new Date();
+
+  while (completedDays.has(cursor.toDateString())) {
+    streak += 1;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+
+  return streak;
+}
+
+function getWorkoutsThisWeek(completedWorkouts: CompletedWorkout[]) {
+  const now = new Date();
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay());
+  startOfWeek.setHours(0, 0, 0, 0);
+
+  return completedWorkouts.filter(
+    (w) => new Date(w.completed_at) >= startOfWeek,
+  ).length;
+}
+
+// Workouts have no fixed daily target (unlike habits), so this is simplified to a yes/no.
+function hasWorkoutToday(completedWorkouts: CompletedWorkout[]) {
+  const today = new Date().toDateString();
+  return completedWorkouts.some(
+    (w) => new Date(w.completed_at).toDateString() === today,
+  );
+}
+
+// One row in the "Jump back in" section — a pressable card linking to another tab.
+function QuickLinkCard({
+  title,
+  subtitle,
+  href,
+  icon,
+}: {
+  title: string;
+  subtitle: string;
+  href: string;
+  icon: string;
+}) {
+  const router = useRouter();
+  const goTo = () => router.navigate(href as any);
+
   return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.header}>
-          <ThemedText type="small">{getGreeting()},</ThemedText>
-          <ThemedText type="title" style={styles.title}>
-            {MOCK_USER_NAME}
-          </ThemedText>
-        </ThemedView>
+    <Card mode="contained" onPress={goTo}>
+      <Card.Title
+        title={title}
+        subtitle={subtitle}
+        left={(props) => <Avatar.Icon {...props} icon={icon} />}
+        right={(props) => (
+          <IconButton {...props} icon="chevron-right" onPress={goTo} />
+        )}
+      />
+    </Card>
+  );
+}
 
-        <ThemedView style={styles.statsRow}>
-          {MOCK_STATS.map((stat) => (
-            <ThemedView
-              key={stat.label}
-              type="backgroundElement"
-              style={styles.statCard}
-            >
-              <ThemedText type="smallBold" style={styles.statValue}>
-                {stat.value}
-              </ThemedText>
-              <ThemedText type="small">{stat.label}</ThemedText>
-            </ThemedView>
-          ))}
-        </ThemedView>
+export default function HomeScreen() {
+  const theme = useTheme();
+  const { user } = useContext(userContext) ?? {};
 
-        <ThemedView style={styles.listSection}>
-          <ThemedText type="smallBold" style={styles.sectionLabel}>
-            Today's habits
-          </ThemedText>
+  // Real data, shared with WorkoutsPage via workoutsDataContext.
+  const { completedWorkouts, loading: workoutsLoading } = useContext(
+    workoutsDataContext,
+  ) ?? {
+    completedWorkouts: [] as CompletedWorkout[],
+    loading: true,
+  };
 
-          <ThemedView style={styles.habitList}>
-            {MOCK_HABITS.map((habit) => (
-              <ThemedView
-                key={habit.id}
-                type={habit.done ? "backgroundSelected" : "backgroundElement"}
-                style={styles.habitCard}
-              >
-                <ThemedView style={styles.checkCircleWrapper}>
-                  <ThemedView
-                    style={[
-                      styles.checkCircle,
-                      habit.done && styles.checkCircleDone,
-                    ]}
-                  />
-                </ThemedView>
+  // Real data, shared with HabitsScreen via habitsContext.
+  const { habitArray, habitCompletions } = useContext(habitsContext) ?? {
+    habitArray: [],
+    habitCompletions: {},
+  };
 
-                <ThemedView style={styles.habitTextGroup}>
-                  <ThemedText style={habit.done && styles.habitNameDone}>
-                    {habit.name}
-                  </ThemedText>
-                  <ThemedText type="small">{habit.time}</ThemedText>
-                </ThemedView>
-              </ThemedView>
-            ))}
-          </ThemedView>
-        </ThemedView>
-      </SafeAreaView>
-    </ThemedView>
+  const streak = useMemo(
+    () => getWorkoutStreak(completedWorkouts),
+    [completedWorkouts],
+  );
+  const workoutsThisWeek = useMemo(
+    () => getWorkoutsThisWeek(completedWorkouts),
+    [completedWorkouts],
+  );
+  const workoutDoneToday = useMemo(
+    () => hasWorkoutToday(completedWorkouts),
+    [completedWorkouts],
+  );
+
+  const today = getTodaysDate();
+  const habitsToday = useMemo(
+    () => getHabitsForDate(habitArray, today),
+    [habitArray, today],
+  );
+  const habitsCompleteToday = useMemo(
+    () =>
+      habitsToday.filter((habit) =>
+        isHabitDone(habit.id, today, habitCompletions),
+      ).length,
+    [habitsToday, today, habitCompletions],
+  );
+  const habitsProgress =
+    habitsToday.length > 0 ? habitsCompleteToday / habitsToday.length : 0;
+
+  const displayName =
+    user?.user_metadata?.full_name || user?.email?.split("@")[0] || "there";
+
+  return (
+    <ScreenView
+      header={
+        <VStack space="xs" style={styles.header}>
+          <Text variant="bodyLarge">{getGreeting()},</Text>
+          <Text variant="displaySmall">{displayName}</Text>
+        </VStack>
+      }
+    >
+      <Card mode="contained" style={styles.streakCard}>
+        <Card.Content style={styles.streakContent}>
+          <Avatar.Icon icon="fire" size={56} color={theme.colors.onPrimary} />
+
+          <VStack style={styles.streakColumn}>
+            {workoutsLoading ? (
+              <ActivityIndicator />
+            ) : (
+              <Text variant="displaySmall">{streak}</Text>
+            )}
+            <Text variant="labelMedium">Day streak</Text>
+          </VStack>
+
+          <VStack
+            style={[
+              styles.streakColumn,
+              styles.streakDivider,
+              { borderLeftColor: theme.colors.outlineVariant },
+            ]}
+          >
+            {workoutsLoading ? (
+              <ActivityIndicator />
+            ) : (
+              <Text variant="headlineMedium">{workoutsThisWeek}</Text>
+            )}
+            <Text variant="labelMedium">This week</Text>
+          </VStack>
+        </Card.Content>
+      </Card>
+
+      <VStack space="sm" style={styles.todaySection}>
+        <Text variant="titleMedium">Today</Text>
+
+        <HStack space="md" style={styles.ringRow}>
+          <VStack style={styles.ringColumn}>
+            <CircleTimer
+              progress={habitsProgress}
+              label={`${habitsCompleteToday}/${habitsToday.length}`}
+              duration={600}
+              size={84}
+              strokeWidth={8}
+              labelVariant="labelLarge"
+            />
+            <Text variant="labelMedium">Habits</Text>
+          </VStack>
+
+          <VStack style={styles.ringColumn}>
+            <CircleTimer
+              progress={workoutDoneToday ? 1 : 0}
+              label={workoutDoneToday ? "Done" : "Not yet"}
+              duration={600}
+              size={84}
+              strokeWidth={8}
+              labelVariant="labelLarge"
+            />
+            <Text variant="labelMedium">Workout</Text>
+          </VStack>
+
+          <VStack style={styles.ringColumn}>
+            <CircleTimer
+              progress={MOCK_CALORIES_CONSUMED / MOCK_CALORIE_GOAL}
+              label={`${MOCK_CALORIES_CONSUMED}/${MOCK_CALORIE_GOAL}`}
+              duration={600}
+              size={84}
+              strokeWidth={8}
+              labelVariant="labelSmall"
+            />
+            <Text variant="labelMedium">Calories (mock)</Text>
+          </VStack>
+        </HStack>
+      </VStack>
+
+      <VStack space="sm" style={styles.linksSection}>
+        <Text variant="titleMedium">Jump back in</Text>
+
+        <QuickLinkCard
+          title="Today's habits"
+          subtitle={
+            habitsToday.length > 0
+              ? `${habitsCompleteToday}/${habitsToday.length} done today`
+              : "No habits scheduled today"
+          }
+          href="/habits"
+          icon="timer-outline"
+        />
+        <QuickLinkCard
+          title="Workouts"
+          subtitle={
+            workoutsThisWeek > 0
+              ? `${workoutsThisWeek} completed this week`
+              : "Find something to do today"
+          }
+          href="/workouts"
+          icon="dumbbell"
+        />
+        <QuickLinkCard
+          title="Meals"
+          subtitle="Plan or log what you're eating"
+          href="/meals"
+          icon="silverware-fork-knife"
+        />
+      </VStack>
+    </ScreenView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  safeArea: {
-    flex: 1,
-    width: "100%",
-    alignSelf: "center",
-    maxWidth: MaxContentWidth,
-    paddingHorizontal: Spacing.four,
-    paddingBottom: BottomTabInset + Spacing.three,
-    gap: Spacing.four,
-  },
   header: {
-    gap: Spacing.one,
-    marginTop: Spacing.three,
+    alignSelf: "flex-start",
   },
-  title: {
-    marginTop: 0,
+  streakCard: {
+    width: "100%",
   },
-  statsRow: {
-    flexDirection: "row",
-    gap: Spacing.two,
-  },
-  statCard: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: Spacing.three,
-    borderRadius: Spacing.four,
-    gap: Spacing.one,
-  },
-  statValue: {
-    fontSize: 18,
-  },
-  listSection: {
-    flex: 1,
-    gap: Spacing.three,
-  },
-  sectionLabel: {
-    marginBottom: Spacing.one,
-  },
-  habitList: {
-    gap: Spacing.two,
-  },
-  habitCard: {
+  streakContent: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.three,
+    gap: Spacing.four,
     paddingVertical: Spacing.three,
-    paddingHorizontal: Spacing.three,
-    borderRadius: Spacing.four,
   },
-  checkCircleWrapper: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  checkCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 2,
-    borderColor: "#999",
-  },
-  checkCircleDone: {
-    backgroundColor: "#4CAF50",
-    borderColor: "#4CAF50",
-  },
-  habitTextGroup: {
+  streakColumn: {
     flex: 1,
-    gap: 2,
+    alignItems: "center",
+    gap: Spacing.one,
   },
-  habitNameDone: {
-    textDecorationLine: "line-through",
-    opacity: 0.6,
+  streakDivider: {
+    borderLeftWidth: StyleSheet.hairlineWidth,
+    paddingLeft: Spacing.four,
+  },
+  todaySection: {
+    alignSelf: "stretch",
+  },
+  ringRow: {
+    justifyContent: "space-evenly",
+    alignSelf: "stretch",
+  },
+  ringColumn: {
+    alignItems: "center",
+    gap: Spacing.one,
+  },
+  linksSection: {
+    alignSelf: "stretch",
   },
 });
