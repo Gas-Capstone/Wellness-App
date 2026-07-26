@@ -23,6 +23,7 @@ import { HStack } from "@/components/ui/hstack";
 import { VStack } from "@/components/ui/vstack";
 import { ScreenView } from "@/components/ui/ScreenView";
 import { Spacing } from "@/constants/theme";
+import { styles } from "@/constants/styles";
 
 // Mock calorie goal — no calorie-tracking data exists yet, so these are placeholders.
 const MOCK_CALORIE_GOAL = 2000;
@@ -154,17 +155,17 @@ export default function HomeScreen() {
   return (
     <ScreenView
       header={
-        <VStack space="xs" style={styles.header}>
+        <VStack space="xs" style={styles.headerStyle}>
           <Text variant="bodyLarge">{getGreeting()},</Text>
           <Text variant="displaySmall">{displayName}</Text>
         </VStack>
       }
     >
-      <Card mode="contained" style={styles.streakCard}>
-        <Card.Content style={styles.streakContent}>
+      <Card mode="contained" style={homeStyles.streakCard}>
+        <Card.Content style={homeStyles.streakContent}>
           <Avatar.Icon icon="fire" size={56} color={theme.colors.onPrimary} />
 
-          <VStack style={styles.streakColumn}>
+          <VStack style={homeStyles.streakColumn}>
             {workoutsLoading ? (
               <ActivityIndicator />
             ) : (
@@ -175,8 +176,8 @@ export default function HomeScreen() {
 
           <VStack
             style={[
-              styles.streakColumn,
-              styles.streakDivider,
+              homeStyles.streakColumn,
+              homeStyles.streakDivider,
               { borderLeftColor: theme.colors.outlineVariant },
             ]}
           >
@@ -190,11 +191,11 @@ export default function HomeScreen() {
         </Card.Content>
       </Card>
 
-      <VStack space="sm" style={styles.todaySection}>
+      <VStack space="sm" style={homeStyles.todaySection}>
         <Text variant="titleMedium">Today</Text>
 
-        <HStack space="md" style={styles.ringRow}>
-          <VStack style={styles.ringColumn}>
+        <HStack space="md" style={homeStyles.ringRow}>
+          <VStack style={homeStyles.ringColumn}>
             <CircleTimer
               progress={habitsProgress}
               label={`${habitsCompleteToday}/${habitsToday.length}`}
@@ -206,7 +207,7 @@ export default function HomeScreen() {
             <Text variant="labelMedium">Habits</Text>
           </VStack>
 
-          <VStack style={styles.ringColumn}>
+          <VStack style={homeStyles.ringColumn}>
             <CircleTimer
               progress={workoutDoneToday ? 1 : 0}
               label={workoutDoneToday ? "Done" : "Not yet"}
@@ -218,7 +219,7 @@ export default function HomeScreen() {
             <Text variant="labelMedium">Workout</Text>
           </VStack>
 
-          <VStack style={styles.ringColumn}>
+          <VStack style={homeStyles.ringColumn}>
             <CircleTimer
               progress={MOCK_CALORIES_CONSUMED / MOCK_CALORIE_GOAL}
               label={`${MOCK_CALORIES_CONSUMED}/${MOCK_CALORIE_GOAL}`}
@@ -232,7 +233,7 @@ export default function HomeScreen() {
         </HStack>
       </VStack>
 
-      <VStack space="sm" style={styles.linksSection}>
+      <VStack space="sm" style={homeStyles.linksSection}>
         <Text variant="titleMedium">Jump back in</Text>
 
         <QuickLinkCard
@@ -266,7 +267,7 @@ export default function HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const homeStyles = StyleSheet.create({
   header: {
     alignSelf: "flex-start",
   },
