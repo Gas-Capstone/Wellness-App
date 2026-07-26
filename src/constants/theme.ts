@@ -69,4 +69,5 @@ export const Spacing = {
 
 export const TabBarFloatMargin = Spacing.three;
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0 + TabBarFloatMargin
+export const TopBadgeInset = Spacing.five + Spacing.three
 export const MaxContentWidth = 800;

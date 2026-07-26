@@ -1,4 +1,3 @@
-import { HStack } from "@/components/ui/hstack";
 import { styles } from "@/constants/styles";
 import { ThemedView } from "../themed-view";
 import { useTheme } from "@/hooks/use-theme";
@@ -14,6 +13,8 @@ import { HabitCard } from "./HabitCard";
 import { getTodaysDate } from "@/lib/time_management/week";
 import { CompletionsByDate, Habit, isHabitDone, addHabitToList, removeHabitFromList, getHabitsForDate } from "@/lib/habits/habits";
 import { AddHabitModal } from "./AddHabitModal";
+import { ScreenView } from "../ui/ScreenView";
+import { Spacing, TopBadgeInset } from "@/constants/theme";
 
 
 export default function HabitsScreen() {
@@ -57,50 +58,56 @@ export default function HabitsScreen() {
 
     return (
         <>
-        <ThemedView style={{ flex: 1}}>
-          <SafeAreaView style={styles.safeArea}>
-            <View />
-                <HStack style={styles.rowBox}>
-                    <Text variant="titleMedium">{habitsComplete}/{habitNumber} complete</Text>
-                </HStack>
-                <VStack style={styles.columnContainer} space="md">
-                  <WeekStrip
-                    selectedDate={selectedDate}
-                    onSelectDate={setSelectedDate}
-                  />
-                  <Divider bold style={{ width: "100%" }}/>
-                  {habitsForDay.length !== 0 && habitsForDay.map((habit) => (
-                    <HabitCard
-                      key={habit.id}
-                      title={habit.title}
-                      time={habit.time}
-                      isDone={isHabitDone(habit.id, selectedDate, habitCompletions)}
-                      onToggle={() => toggleHabit({ habitId: habit.id, habitDate: selectedDate })}
-                      onDelete={() => removeHabit(habit.id)}
-                  
-                    />
-                  ))}
-                  {habitsForDay.length === 0 &&
-                    <Center>
-                      <Text>No habits for today...</Text>
-                    </Center>
-                  }
-                </VStack>
-            </SafeAreaView>
+          <ScreenView
+            onScroll={onScroll}
+            overlay={
+              <>
+              <HabitAnimatedFAB
+                extended={fabExtended}
+                onPress={() => setModalVisible(true)}
+              />
+              <AddHabitModal
+                visible={modalVisible}
+                onDismiss={() => setModalVisible(false)}
+                onSave={(habit) => {
+                  addHabit(habit)
+                }}
+              />
+              </>
+            }
 
-            <HabitAnimatedFAB
-              extended={fabExtended}
-              onPress={() => setModalVisible(true)}
-            />
-
-            <AddHabitModal
-              visible={modalVisible}
-              onDismiss={() => setModalVisible(false)}
-              onSave={(habit) => {
-                addHabit(habit)
-              }}
-            />
-          </ThemedView>
+            header={
+              <>
+              <VStack space="md"
+                style={styles.headerStyle}
+              >
+                <Text variant="titleMedium" style={{alignSelf: "flex-start"}}>{habitsComplete}/{habitNumber} complete</Text>
+                <WeekStrip
+                  selectedDate={selectedDate}
+                  onSelectDate={setSelectedDate}
+                />
+                <Divider bold style={{width: "100%"}} />
+              </VStack>
+              </>
+            }
+          >
+              {habitsForDay.length !== 0 && habitsForDay.map((habit) => (
+                <HabitCard
+                  key={habit.id}
+                  title={habit.title}
+                  time={habit.time}
+                  isDone={isHabitDone(habit.id, selectedDate, habitCompletions)}
+                  onToggle={() => toggleHabit({ habitId: habit.id, habitDate: selectedDate })}
+                  onDelete={() => removeHabit(habit.id)}
+              
+                />
+              ))}
+              {habitsForDay.length === 0 &&
+                <Center>
+                  <Text>No habits for today...</Text>
+                </Center>
+              }
+          </ScreenView>
         </>
     )
 }
