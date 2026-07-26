@@ -1,56 +1,42 @@
-# Welcome to your Expo app 👋
+# Upkeep: An open-source, low friction wellness app
+Upkeep is a wellness app designed to keep track of workouts, meals, and habits app, with the intention of being as easy to use as possible. 
+Upkeep is being built in React Native using Expo. The project is currently early in development.
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+## Create a dev build
+##### Note: This guide assumes you have an Android device with debugging enabled, or an Android emulator already set up. Guides for this can be found in the [Expo Build Docs](https://docs.expo.dev/get-started/set-up-your-environment/?mode=development-build&buildEnv=local&platform=android&device=physical). Follow the Development Build guide.
+#### Prerequisites
+- Nodejs (LTS)
+- JDK 17+
+- Android 16+ SDK
 
-## Get started
-
-1. Install dependencies
-
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+1. Clone repo, and run install:
 ```bash
-npm run reset-project
+npm install
 ```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+2. Install the build client:
+```bash
+npx expo install expo-dev-client
+```
+3. Plug in your Android device, or start your Android emulator, and build and run the app:
+```bash
+npx expo run:android
+```
+4. You won't need to build the app again, unless more Nodejs packages are installed. To run the server without rebuilding the app:
+```bash
+npx expo start
+```
+## Features
+###  Current features
+- Authentication via email/password
+- Home page displaying information from the various pages in the app
+- Workouts page with a list of workouts, and the ability to time each workout
+	- Workouts can be set as complete via the timer page
+	- Completed workouts can be viewed from this page
+- Meal planner page keeps track of ingredients you currently have, and suggests meals to make
+- Habits page allows you to create, schedule, and keep track of habits you want to keep
+	- Habits can be scheduled for separate weekdays (i.e. only M/W/F)
+### Planned features
+- Integrate habits page with backend
+- Add more features to profile page such as name change, profile picture
+- Add ability to create custom recipes and workouts
+- Add multiple themes
