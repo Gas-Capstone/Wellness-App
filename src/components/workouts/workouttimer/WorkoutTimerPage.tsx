@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useUserContext } from "../../context/userContext";
 import { useWorkoutSessionContext } from "@/components/context/workoutSessionContext";
 import { ScreenView } from "../../ui/ScreenView";
+import { ConfirmStopModal } from "./ConfirmStopModal";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Text, useTheme } from "react-native-paper";
 import { styles } from "@/constants/styles";
@@ -28,7 +29,7 @@ export default function WorkoutTimerPage() {
     getElapsedTime,
   } = useWorkoutSessionContext();
 
-
+  const [ confirmStopOpen, setConfirmStopOpen ] = useState(false)
   // vars for timer
   const [now, setNow] = useState(Date.now());
 
@@ -44,7 +45,7 @@ export default function WorkoutTimerPage() {
     // fires when timer is finished
     if (workoutSession?.status !== "active") return;
     if (workoutSession.plannedDuration * 60 * 1000 - getElapsedTime() <= 0) {
-      setWorkoutComplete(user, workoutSession.workout);
+      setWorkoutComplete(user, workoutSession.workout, workoutSession.plannedDuration);
       completeSession();
     }
   }, [workoutSession?.status, getElapsedTime, now]);
@@ -59,16 +60,10 @@ export default function WorkoutTimerPage() {
   const isIdle = workoutSession?.status === "idle"
   const isCompleted = workoutSession?.status === "complete"
 
-  const handleTimerToggle = () => {
-    if (isActive) {
-      pauseSession()
-    } else if (isPaused || isIdle) {
-      resumeSession()
-    }
-  }
 
   const totalMS = workoutSession.plannedDuration * 60 * 1000;
   const elapsedMS = getElapsedTime();
+  const elapsedMins = Math.max(1, Math.ceil(elapsedMS / 60000))
   const remainingMS = Math.max(totalMS - elapsedMS, 0);
   const remainingMins =
     workoutSession.status === "complete" ? 0 : Math.floor(remainingMS / 60000);
@@ -84,6 +79,24 @@ export default function WorkoutTimerPage() {
         ? remainingMS / totalMS
         : 0;
 
+
+  const handleTimerToggle = () => {
+    if (isActive) {
+      pauseSession()
+    } else if (isPaused || isIdle) {
+      resumeSession()
+    }
+  }
+
+  const handleStop = async () => {
+    if (isCompleted) return
+
+    await setWorkoutComplete(user, workoutSession.workout, elapsedMins)
+    completeSession()
+    setConfirmStopOpen(false)
+  }
+
+
   return (
     <ScreenView
       contentContainerStyle={{ flexGrow: 1 }} 
@@ -96,6 +109,17 @@ export default function WorkoutTimerPage() {
           />
         </HStack>
       }
+      overlay={
+        <>
+          <ConfirmStopModal
+            visible={confirmStopOpen}
+            elapsedTime={elapsedMins}
+            onDismiss={() => setConfirmStopOpen(false)}
+            onConfirm={handleStop}
+          />
+        </>
+      }
+
     >
       <VStack
         style={{ flex: 1, width: "100%", alignContent: "center", alignItems: "center"}}
@@ -129,7 +153,7 @@ export default function WorkoutTimerPage() {
             icon="stop"
             size={60}
             disabled={isCompleted}
-            onPress={completeSession}
+            onPress={() => setConfirmStopOpen(true)}
             containerColor={isCompleted ? theme.colors.surface : theme.colors.primary}
             iconColor={theme.colors.onPrimary}
             style={{ margin: 0 }}

@@ -8,10 +8,10 @@ export async function getWorkouts() {
     return data
 }
 
-export async function setWorkoutComplete(user, workout){
+export async function setWorkoutComplete(user, workout, durationMin){
     const {data, error} = await supabase
         .from("workout_sessions")
-        .insert({ user_id: user.id, workout_id: workout.id, duration_min: workout.duration_min })
+        .insert({ user_id: user.id, workout_id: workout.id, duration_min: durationMin })
     if (error) console.log("Error setting workout as complete: ", error)
 }
 
