@@ -1,23 +1,32 @@
-import { useCallback, useContext, useMemo, useState } from "react";
+import { useContext, useMemo } from "react";
 import { StyleSheet } from "react-native";
-import { useFocusEffect, useRouter } from "expo-router";
-import { ActivityIndicator, Card, IconButton, Text } from "react-native-paper";
+import { useRouter } from "expo-router";
+import {
+  ActivityIndicator,
+  Avatar,
+  Card,
+  IconButton,
+  Text,
+  useTheme,
+} from "react-native-paper";
 
 import { userContext } from "@/components/context/userContext";
-import { getCompletedWorkouts } from "@/lib/supabaseFunctions";
+import {
+  workoutsDataContext,
+  CompletedWorkout,
+} from "@/components/context/workoutsDataContext";
+import { habitsContext } from "@/components/context/habitsContext";
+import { getHabitsForDate, isHabitDone } from "@/lib/habits/habits";
+import { getTodaysDate } from "@/lib/time_management/week";
+import { CircleTimer } from "@/components/ui/CircleTimer";
 import { HStack } from "@/components/ui/hstack";
 import { VStack } from "@/components/ui/vstack";
 import { ScreenView } from "@/components/ui/ScreenView";
 import { Spacing } from "@/constants/theme";
 
-// Shape returned by getCompletedWorkouts — matches the fields already
-// relied on in CompletedWorkoutsModal.tsx (name, duration_min, completed_at).
-type CompletedWorkout = {
-  id: string;
-  name: string;
-  duration_min: number;
-  completed_at: string;
-};
+// Mock calorie goal — no calorie-tracking data exists yet, so these are placeholders.
+const MOCK_CALORIE_GOAL = 2000;
+const MOCK_CALORIES_CONSUMED = 1450;
 
 function getGreeting() {
   const hour = new Date().getHours();
@@ -26,8 +35,7 @@ function getGreeting() {
   return "Good evening";
 }
 
-// Counts consecutive days (including today) with at least one completed
-// workout, walking backward from today until a day with none is found.
+// Counts consecutive days (including today) with at least one completed workout.
 function getWorkoutStreak(completedWorkouts: CompletedWorkout[]) {
   if (!completedWorkouts.length) return 0;
 
@@ -57,16 +65,25 @@ function getWorkoutsThisWeek(completedWorkouts: CompletedWorkout[]) {
   ).length;
 }
 
-// One row in the "Jump back in" section — a pressable card linking to
-// another tab. No fabricated stats here; only shows real data when passed.
+// Workouts have no fixed daily target (unlike habits), so this is simplified to a yes/no.
+function hasWorkoutToday(completedWorkouts: CompletedWorkout[]) {
+  const today = new Date().toDateString();
+  return completedWorkouts.some(
+    (w) => new Date(w.completed_at).toDateString() === today,
+  );
+}
+
+// One row in the "Jump back in" section — a pressable card linking to another tab.
 function QuickLinkCard({
   title,
   subtitle,
   href,
+  icon,
 }: {
   title: string;
   subtitle: string;
   href: string;
+  icon: string;
 }) {
   const router = useRouter();
   const goTo = () => router.navigate(href as any);
@@ -76,6 +93,7 @@ function QuickLinkCard({
       <Card.Title
         title={title}
         subtitle={subtitle}
+        left={(props) => <Avatar.Icon {...props} icon={icon} />}
         right={(props) => (
           <IconButton {...props} icon="chevron-right" onPress={goTo} />
         )}
@@ -85,37 +103,22 @@ function QuickLinkCard({
 }
 
 export default function HomeScreen() {
+  const theme = useTheme();
   const { user } = useContext(userContext) ?? {};
-  const [completedWorkouts, setCompletedWorkouts] = useState<
-    CompletedWorkout[]
-  >([]);
-  const [loading, setLoading] = useState(true);
 
-  const loadWorkoutData = useCallback(() => {
-    if (!user?.id) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    getCompletedWorkouts(user)
-      .then((data) => setCompletedWorkouts(data ?? []))
-      .catch((error) => {
-        console.log(
-          "Error fetching completed workouts on home screen: ",
-          error,
-        );
-        setCompletedWorkouts([]);
-      })
-      .finally(() => setLoading(false));
-  }, [user?.id]);
+  // Real data, shared with WorkoutsPage via workoutsDataContext.
+  const { completedWorkouts, loading: workoutsLoading } = useContext(
+    workoutsDataContext,
+  ) ?? {
+    completedWorkouts: [] as CompletedWorkout[],
+    loading: true,
+  };
 
-  // Refetch whenever the Home tab regains focus, so a workout completed
-  // elsewhere updates the streak/count here without a manual refresh.
-  useFocusEffect(
-    useCallback(() => {
-      loadWorkoutData();
-    }, [loadWorkoutData]),
-  );
+  // Real data, shared with HabitsScreen via habitsContext.
+  const { habitArray, habitCompletions } = useContext(habitsContext) ?? {
+    habitArray: [],
+    habitCompletions: {},
+  };
 
   const streak = useMemo(
     () => getWorkoutStreak(completedWorkouts),
@@ -125,6 +128,25 @@ export default function HomeScreen() {
     () => getWorkoutsThisWeek(completedWorkouts),
     [completedWorkouts],
   );
+  const workoutDoneToday = useMemo(
+    () => hasWorkoutToday(completedWorkouts),
+    [completedWorkouts],
+  );
+
+  const today = getTodaysDate();
+  const habitsToday = useMemo(
+    () => getHabitsForDate(habitArray, today),
+    [habitArray, today],
+  );
+  const habitsCompleteToday = useMemo(
+    () =>
+      habitsToday.filter((habit) =>
+        isHabitDone(habit.id, today, habitCompletions),
+      ).length,
+    [habitsToday, today, habitCompletions],
+  );
+  const habitsProgress =
+    habitsToday.length > 0 ? habitsCompleteToday / habitsToday.length : 0;
 
   const displayName =
     user?.user_metadata?.full_name || user?.email?.split("@")[0] || "there";
@@ -138,37 +160,90 @@ export default function HomeScreen() {
         </VStack>
       }
     >
-      <HStack space="sm" style={styles.statsRow}>
-        <Card mode="contained" style={styles.statCard}>
-          <Card.Content style={styles.statCardContent}>
-            {loading ? (
+      <Card mode="contained" style={styles.streakCard}>
+        <Card.Content style={styles.streakContent}>
+          <Avatar.Icon icon="fire" size={56} color={theme.colors.onPrimary} />
+
+          <VStack style={styles.streakColumn}>
+            {workoutsLoading ? (
               <ActivityIndicator />
             ) : (
-              <Text variant="headlineMedium">{streak}</Text>
+              <Text variant="displaySmall">{streak}</Text>
             )}
             <Text variant="labelMedium">Day streak</Text>
-          </Card.Content>
-        </Card>
+          </VStack>
 
-        <Card mode="contained" style={styles.statCard}>
-          <Card.Content style={styles.statCardContent}>
-            {loading ? (
+          <VStack
+            style={[
+              styles.streakColumn,
+              styles.streakDivider,
+              { borderLeftColor: theme.colors.outlineVariant },
+            ]}
+          >
+            {workoutsLoading ? (
               <ActivityIndicator />
             ) : (
               <Text variant="headlineMedium">{workoutsThisWeek}</Text>
             )}
-            <Text variant="labelMedium">Workouts this week</Text>
-          </Card.Content>
-        </Card>
-      </HStack>
+            <Text variant="labelMedium">This week</Text>
+          </VStack>
+        </Card.Content>
+      </Card>
+
+      <VStack space="sm" style={styles.todaySection}>
+        <Text variant="titleMedium">Today</Text>
+
+        <HStack space="md" style={styles.ringRow}>
+          <VStack style={styles.ringColumn}>
+            <CircleTimer
+              progress={habitsProgress}
+              label={`${habitsCompleteToday}/${habitsToday.length}`}
+              duration={600}
+              size={84}
+              strokeWidth={8}
+              labelVariant="labelLarge"
+            />
+            <Text variant="labelMedium">Habits</Text>
+          </VStack>
+
+          <VStack style={styles.ringColumn}>
+            <CircleTimer
+              progress={workoutDoneToday ? 1 : 0}
+              label={workoutDoneToday ? "Done" : "Not yet"}
+              duration={600}
+              size={84}
+              strokeWidth={8}
+              labelVariant="labelLarge"
+            />
+            <Text variant="labelMedium">Workout</Text>
+          </VStack>
+
+          <VStack style={styles.ringColumn}>
+            <CircleTimer
+              progress={MOCK_CALORIES_CONSUMED / MOCK_CALORIE_GOAL}
+              label={`${MOCK_CALORIES_CONSUMED}/${MOCK_CALORIE_GOAL}`}
+              duration={600}
+              size={84}
+              strokeWidth={8}
+              labelVariant="labelSmall"
+            />
+            <Text variant="labelMedium">Calories (mock)</Text>
+          </VStack>
+        </HStack>
+      </VStack>
 
       <VStack space="sm" style={styles.linksSection}>
         <Text variant="titleMedium">Jump back in</Text>
 
         <QuickLinkCard
           title="Today's habits"
-          subtitle="Check off what you've done today"
+          subtitle={
+            habitsToday.length > 0
+              ? `${habitsCompleteToday}/${habitsToday.length} done today`
+              : "No habits scheduled today"
+          }
           href="/habits"
+          icon="timer-outline"
         />
         <QuickLinkCard
           title="Workouts"
@@ -178,11 +253,13 @@ export default function HomeScreen() {
               : "Find something to do today"
           }
           href="/workouts"
+          icon="dumbbell"
         />
         <QuickLinkCard
           title="Meals"
           subtitle="Plan or log what you're eating"
           href="/meals"
+          icon="silverware-fork-knife"
         />
       </VStack>
     </ScreenView>
@@ -193,16 +270,34 @@ const styles = StyleSheet.create({
   header: {
     alignSelf: "flex-start",
   },
-  statsRow: {
+  streakCard: {
     width: "100%",
   },
-  statCard: {
-    flex: 1,
+  streakContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.four,
+    paddingVertical: Spacing.three,
   },
-  statCardContent: {
+  streakColumn: {
+    flex: 1,
     alignItems: "center",
     gap: Spacing.one,
-    paddingVertical: Spacing.two,
+  },
+  streakDivider: {
+    borderLeftWidth: StyleSheet.hairlineWidth,
+    paddingLeft: Spacing.four,
+  },
+  todaySection: {
+    alignSelf: "stretch",
+  },
+  ringRow: {
+    justifyContent: "space-evenly",
+    alignSelf: "stretch",
+  },
+  ringColumn: {
+    alignItems: "center",
+    gap: Spacing.one,
   },
   linksSection: {
     alignSelf: "stretch",
