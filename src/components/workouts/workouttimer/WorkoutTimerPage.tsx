@@ -45,7 +45,6 @@ export default function WorkoutTimerPage() {
 
     useEffect(() => {
         // fires when timer is finished
-        console.log("Progress check: ", timerProgress)
         if (workoutSession?.status !== "active") return
         if (timerProgress === 0) {
             setWorkoutComplete(user, workoutSession.workout)
@@ -66,13 +65,11 @@ export default function WorkoutTimerPage() {
             }
         >
             <VStack style={{ width: "100%", alignContent: "center", alignItems: "center" }} space="sm">
-                <Text>{workoutSession.workout.name}</Text>
-                <Text>{workoutSession.plannedDuration}</Text>
-                <Text>{workoutSession.status}</Text>
+                <CircleTimer progress={timerProgress} label={timerLabel} duration={1000} />
+                <Text variant="headlineMedium">{workoutSession.workout.name}</Text>
                 <Button mode="contained" onPress={() => pauseSession()}>Pause Session</Button>
                 <Button mode="contained" onPress={() => resumeSession()}>Resume Session</Button>
                 <Button mode="contained" onPress={() => completeSession()}>Complete Session</Button>
-                <CircleTimer progress={timerProgress} label={timerLabel} duration={1000} />
             </VStack>
         </ScreenView>
     )
