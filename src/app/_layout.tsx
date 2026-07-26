@@ -49,17 +49,17 @@ export default function RootLayout() {
       <WorkoutSessionProvider>
         <WorkoutsDataProvider>
           <HabitsProvider>
-        <GluestackUIProvider mode="dark">
-          <PaperProvider theme={curTheme}>
-            <ThemeProvider value={themeProviderTheme}>
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="(auth)" />
-                <Stack.Screen name="(tabs)" />
-                <Stack.Screen name="(subpages)" />
-              </Stack>
-            </ThemeProvider>
-          </PaperProvider>
-        </GluestackUIProvider>
+            <GluestackUIProvider mode="dark">
+              <PaperProvider theme={curTheme}>
+                <ThemeProvider value={themeProviderTheme}>
+                  <Stack screenOptions={{ headerShown: false }}>
+                    <Stack.Screen name="(auth)" />
+                    <Stack.Screen name="(tabs)" />
+                    <Stack.Screen name="(subpages)" />
+                  </Stack>
+                </ThemeProvider>
+              </PaperProvider>
+            </GluestackUIProvider>
         </HabitsProvider>
         </WorkoutsDataProvider>
       </WorkoutSessionProvider>

@@ -10,6 +10,7 @@ type ScreenViewProps = {
   children: React.ReactNode;
   header?: React.ReactNode; // header context is above the scroll area
   overlay?: React.ReactNode; // modals, floating buttons, etc
+  contentContainerStyle?: ScrollViewProps["contentContainerStyle"]
   onScroll?: ScrollViewProps["onScroll"]
 }
 
@@ -17,6 +18,7 @@ export function ScreenView({
   children,
   header,
   overlay,
+  contentContainerStyle,
   onScroll
  }: ScreenViewProps) {
     // this component is used to provide a consistent styling throughout the app
@@ -30,8 +32,10 @@ export function ScreenView({
            contentContainerStyle={[
             styles.scrollContent,
             {paddingBottom: BottomTabInset + insets.bottom + Spacing.four,
-              paddingTop: header ? Spacing.three : TopBadgeInset
-            }]
+              paddingTop: header ? Spacing.three : TopBadgeInset,
+            },
+            contentContainerStyle,
+            ]
            }
             onScroll={onScroll}
             scrollEventThrottle={16}>
