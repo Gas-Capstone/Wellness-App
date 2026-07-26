@@ -11,14 +11,8 @@ import { styles } from "@/constants/styles";
 import { Spacing } from "@/constants/theme";
 import { useSession } from "@/hooks/use-session";
 import { useTheme } from "@/hooks/use-theme";
-import { Ingredient, Recipe, matchRecipes } from "@/lib/meals/meals";
-import {
-  addFridgeItem,
-  fetchFridgeItemIds,
-  fetchIngredients,
-  fetchRecipes,
-  removeFridgeItem,
-} from "@/lib/meals/queries";
+import { Ingredient, matchRecipes } from "@/lib/meals/meals";
+import { useMealsData } from "@/components/context/mealsDataContext";
 
 import { AddIngredientsModal } from "./AddIngredientsModal";
 import { RecipeCard } from "./RecipeCard";
@@ -29,81 +23,55 @@ export default function MealsScreen() {
   const theme = useTheme();
   const { user, loading: sessionLoading } = useSession();
 
-  const [ingredients, setIngredients] = useState<Ingredient[]>([]);
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [catalogLoading, setCatalogLoading] = useState(true);
-  const [catalogError, setCatalogError] = useState("");
+  // Catalog/fridge state now lives in mealsDataContext so index.tsx can read the same data.
+  const {
+    ingredients,
+    recipes,
+    catalogLoading,
+    catalogError,
+    fridgeIds,
+    fridgeLoading,
+    refreshCatalog,
+    refreshFridge,
+    toggleFridgeItem: toggleFridgeItemShared,
+  } = useMealsData();
 
-  const [fridgeIds, setFridgeIds] = useState<ReadonlySet<number>>(new Set());
-  const [fridgeLoading, setFridgeLoading] = useState(false);
   const [mutationError, setMutationError] = useState("");
-
   const [modalVisible, setModalVisible] = useState(false);
   const [fabExtended, setFabExtended] = useState(true);
 
-  const loadCatalog = () => {
-    setCatalogLoading(true);
-    setCatalogError("");
-    Promise.all([fetchIngredients(), fetchRecipes()])
-      .then(([ingredientRows, recipeRows]) => {
-        setIngredients(ingredientRows);
-        setRecipes(recipeRows);
-      })
-      .catch((error: Error) => setCatalogError(error.message))
-      .finally(() => setCatalogLoading(false));
-  };
-
-  useEffect(loadCatalog, []);
+  useEffect(refreshCatalog, []);
 
   useEffect(() => {
-    if (!user) {
-      setFridgeIds(new Set());
-      return;
-    }
+    refreshFridge();
+  }, [user, refreshFridge]);
 
-    setFridgeLoading(true);
-    fetchFridgeItemIds(user.id)
-      .then((ids) => setFridgeIds(new Set(ids)))
-      .catch((error: Error) => setMutationError(error.message))
-      .finally(() => setFridgeLoading(false));
-  }, [user]);
+  const ingredientName = (id: number) =>
+    ingredients.find((i) => i.id === id)?.name ?? "Unknown";
 
-  const ingredientName = (id: number) => ingredients.find((i) => i.id === id)?.name ?? "Unknown";
-
-  // Add or remove an ingredient depending on whether it's already in the fridge.
-  // Optimistic: the UI updates immediately and rolls back if the write fails.
+  // Optimistic update itself now lives in mealsDataContext; this wraps it to surface errors locally.
   const toggleFridgeItem = async (ingredient: Ingredient) => {
-    if (!user) return;
-    const id = ingredient.id;
-    const had = fridgeIds.has(id);
     setMutationError("");
-    setFridgeIds((prev) => {
-      const next = new Set(prev);
-      if (had) next.delete(id);
-      else next.add(id);
-      return next;
-    });
     try {
-      if (had) await removeFridgeItem(user.id, id);
-      else await addFridgeItem(user.id, id);
+      await toggleFridgeItemShared(ingredient);
     } catch (error) {
-      setFridgeIds((prev) => {
-        const next = new Set(prev);
-        if (had) next.add(id);
-        else next.delete(id);
-        return next;
-      });
-      setMutationError(error instanceof Error ? error.message : "Couldn't update your fridge");
+      setMutationError(
+        error instanceof Error ? error.message : "Couldn't update your fridge",
+      );
     }
   };
 
   const fridgeItems = ingredients.filter((i) => fridgeIds.has(i.id));
 
-  const { ready, almost } = useMemo(() => matchRecipes(recipes, fridgeIds), [recipes, fridgeIds]);
+  const { ready, almost } = useMemo(
+    () => matchRecipes(recipes, fridgeIds),
+    [recipes, fridgeIds],
+  );
 
   const onScroll = ({ nativeEvent }: NativeSyntheticEvent<NativeScrollEvent>) => {
     setFabExtended(nativeEvent.contentOffset.y <= 0);
   };
+
 
   if (!sessionLoading && !user) {
     return (
@@ -143,7 +111,7 @@ export default function MealsScreen() {
         ) : catalogError ? (
           <VStack space="sm" style={{ alignSelf: "stretch" }}>
             <Text style={{ color: ERROR_COLOR }}>{catalogError}</Text>
-            <Text onPress={loadCatalog} style={{ color: theme.accentMeals }}>
+            <Text onPress={refreshCatalog} style={{ color: theme.accentMeals }}>
               Try again
             </Text>
           </VStack>
