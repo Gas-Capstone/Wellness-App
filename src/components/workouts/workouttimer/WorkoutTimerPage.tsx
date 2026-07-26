@@ -45,7 +45,6 @@ export default function WorkoutTimerPage() {
 
     useEffect(() => {
         // fires when timer is finished
-        console.log("Progress check: ", timerProgress)
         if (workoutSession?.status !== "active") return
         if (timerProgress === 0) {
             setWorkoutComplete(user, workoutSession.workout)
@@ -56,23 +55,29 @@ export default function WorkoutTimerPage() {
     return (
         <ScreenView
             header={
-                <HStack style={{ alignContent: "flex-start", width: "100%" }}>
-                    <IconButton
-                        icon="arrow-left"
-                        size={25}
-                        onPress={() => router.back()}
-                    />
-                </HStack>
+                <>
+                <IconButton
+                    icon="arrow-left"
+                    size={25}
+                    style={{ alignSelf: "flex-start" }}
+                    onPress={() => {
+                        router.back()
+                    }}
+                />
+
+                <Text variant="headlineMedium">{workoutSession.workout.name}</Text>
+                </>
             }
         >
             <VStack style={{ width: "100%", alignContent: "center", alignItems: "center" }} space="sm">
-                <Text>{workoutSession.workout.name}</Text>
-                <Text>{workoutSession.plannedDuration}</Text>
+                <CircleTimer progress={timerProgress} label={timerLabel} duration={1000} />
                 <Text>{workoutSession.status}</Text>
+                
+                
                 <Button mode="contained" onPress={() => pauseSession()}>Pause Session</Button>
                 <Button mode="contained" onPress={() => resumeSession()}>Resume Session</Button>
                 <Button mode="contained" onPress={() => completeSession()}>Complete Session</Button>
-                <CircleTimer progress={timerProgress} label={timerLabel} duration={1000} />
+                
             </VStack>
         </ScreenView>
     )

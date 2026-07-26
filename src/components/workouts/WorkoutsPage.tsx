@@ -19,7 +19,7 @@ import { StartWorkoutModal } from "./StartWorkoutModal";
 export default function WorkoutsPage() {
     const router = useRouter();
     const { user } = useContext(userContext)
-    const { startSession } = useContext(workoutSessionContext)
+    const { startSession, clearSession } = useContext(workoutSessionContext)
     const [ workoutList, setWorkoutList ] = useState([])
     const [ workoutTags, setWorkoutTags ] = useState([])
     const [ selectedTag, setSelectedTag ] = useState<String>("all")
@@ -78,6 +78,7 @@ export default function WorkoutsPage() {
         // grabs completed workouts whenever page is focused
         useCallback(() => {
             if (!user?.id) return
+            clearSession()
             getAndSetCompletedWorkouts()
         }, [user?.id])
     )
