@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { ScrollView, View } from "react-native";
-import { ActivityIndicator, Button, Chip, Text } from "react-native-paper";
+import { ActivityIndicator, Chip, Text } from "react-native-paper";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { HabitAnimatedFAB } from "@/components/habits/HabitAnimatedFAB";
 import { ThemedView } from "@/components/themed-view";
 import { Center } from "@/components/ui/center";
 import { HStack } from "@/components/ui/hstack";
@@ -39,6 +40,7 @@ export default function MealsScreen() {
   const [mutationError, setMutationError] = useState("");
 
   const [modalVisible, setModalVisible] = useState(false);
+  const [fabExtended, setFabExtended] = useState(true);
 
   const loadCatalog = () => {
     setCatalogLoading(true);
@@ -116,7 +118,11 @@ export default function MealsScreen() {
     <ThemedView style={{ flex: 1 }}>
       <SafeAreaView style={styles.safeArea}>
         <View />
-        <ScrollView style={{ alignSelf: "stretch" }} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={{ alignSelf: "stretch" }}
+          showsVerticalScrollIndicator={false}
+          onScroll={({ nativeEvent }) => setFabExtended(nativeEvent.contentOffset.y <= 0)}
+          scrollEventThrottle={16}>
           <VStack style={styles.columnContainer} space="md">
             {sessionLoading || catalogLoading ? (
               <Center style={{ paddingVertical: Spacing.five }}>
@@ -156,14 +162,6 @@ export default function MealsScreen() {
                   ) : (
                     <Text>Your fridge is empty — add ingredients to get started.</Text>
                   )}
-
-                  <Button
-                    mode="contained"
-                    icon="plus"
-                    onPress={() => setModalVisible(true)}
-                    style={{ alignSelf: "flex-start" }}>
-                    Add ingredients
-                  </Button>
 
                   {mutationError.length > 0 && (
                     <Text style={{ color: ERROR_COLOR }}>{mutationError}</Text>
@@ -207,6 +205,13 @@ export default function MealsScreen() {
             )}
           </VStack>
         </ScrollView>
+
+        <HabitAnimatedFAB
+          extended={fabExtended}
+          label="Add ingredients"
+          visible={!sessionLoading && !catalogLoading && !catalogError}
+          onPress={() => setModalVisible(true)}
+        />
 
         <AddIngredientsModal
           visible={modalVisible}
