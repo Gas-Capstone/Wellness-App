@@ -32,6 +32,7 @@ type TabConfig = {
   href: TabHref;
   label: string;
   icon: string;
+  hidden?: boolean;
 };
 
 const TABS: TabConfig[] = [
@@ -45,6 +46,13 @@ const TABS: TabConfig[] = [
   },
   { name: "habits", href: "/habits", label: "Habits", icon: "timer-outline" },
   { name: "profile", href: "/profile", label: "Profile", icon: "account" },
+  {
+    name: "settings",
+    href: "/settings",
+    label: "Settings",
+    icon: "cog",
+    hidden: true,
+  },
 ];
 
 // ---- Root ---------------------------------------------------------------
@@ -62,7 +70,7 @@ export default function AppTabs() {
         <TabSlot style={{ height: "100%" }} />
         <TabList asChild>
           <BottomBar>
-            {TABS.map((tab) => (
+            {TABS.filter((t) => !t.hidden).map((tab) => (
               <TabTrigger
                 key={tab.name}
                 name={tab.name}
