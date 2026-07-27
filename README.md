@@ -1,6 +1,6 @@
-# Upkeep: An open-source, low friction wellness app
-Upkeep is a wellness app designed to keep track of workouts, meals, and habits app, with the intention of being as easy to use as possible. 
-Upkeep is being built in React Native using Expo. The project is currently early in development.
+
+# Upkeep: An open-source, low friction wellness app for Android
+Upkeep is a wellness app designed to keep track of workouts, meals, and habits app, with the intention of being as easy to use as possible. The project is currently early in development.
 
 ## Create a dev build
 ##### Note: This guide assumes you have an Android device with debugging enabled, or an Android emulator already set up. Guides for this can be found in the [Expo Build Docs](https://docs.expo.dev/get-started/set-up-your-environment/?mode=development-build&buildEnv=local&platform=android&device=physical). Follow the Development Build guide.
@@ -42,6 +42,12 @@ npx expo start
 - Add multiple themes
 
 ## Known Issues
-- Meals page may fail to load after login
+- Meals page may fail to load after login 
 - Meals page rendering may break when you've gathered enough ingredients for a meal
 
+### Tools used
+- Built using [React Native](https://reactnative.dev/) and [Expo](https://docs.expo.dev/)
+- [React Native Paper](https://reactnativepaper.com/): main frontend components
+- [GluestackUI](https://gluestack.io/): additional styling components
+- [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/): animation components
+- [Supabase](https://supabase.com/): backend and database
