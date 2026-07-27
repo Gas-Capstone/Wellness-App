@@ -1,1 +1,3 @@
-# This will be used to host documentation for Upkeep.
+# Upkeep
+
+### An open-source wellness app for Android, built with React Native.

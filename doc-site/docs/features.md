@@ -1,1 +1,5 @@
-# This will be used to host documentation for Upkeep.
+# Features
+
+- Workout tracker with timer
+- Meal planner with ingredient tracker
+- Habit tracker, split into the days of the week
