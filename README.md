@@ -40,3 +40,8 @@ npx expo start
 - Add more features to profile page such as name change, profile picture
 - Add ability to create custom recipes and workouts
 - Add multiple themes
+
+## Known Issues
+- Meals page may fail to load after login
+- Meals page rendering may break when you've gathered enough ingredients for a meal
+
