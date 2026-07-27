@@ -1,4 +1,4 @@
-import { getDay, parseISO } from "date-fns";
+import { getDay, parse, parseISO } from "date-fns";
 
 export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6
 
@@ -38,15 +38,13 @@ export function addHabitToList(
     const trimmedTitle = title.trim()
     if (!trimmedTitle) return habits;
 
-    return [
-        ...habits,
-        {
-            id: Date.now(),
-            title: trimmedTitle,
-            time,
-            weekdays
-        }
-    ]
+    const newHabit = {
+        id: Date.now(),
+        title: trimmedTitle,
+        time,
+        weekdays
+    }
+    return [...habits, newHabit].sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time))
 }
 
 export function removeHabitFromList(habits: Habit[], habitId: number) {
@@ -58,6 +56,12 @@ export function isHabitOnDate(habit: Habit, date: string){
     return habit.weekdays.includes(getDay(parseISO(date)) as Weekday)
 }
 
+function timeToMinutes(time: string){
+    const parsed = parse(time, "h:mm aa", new Date())
+    return parsed.getHours() * 60 + parsed.getMinutes()
+}
+
 export function getHabitsForDate(habits: Habit[], date: string){
     return habits.filter((habit) => isHabitOnDate(habit, date))
+        .sort((a, b) => timeToMinutes(a.time) - timeToMinutes(b.time))
 }
