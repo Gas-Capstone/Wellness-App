@@ -43,6 +43,6 @@ example
 /android
 
 # docs artifacts
-doc-site/docs/.vitepress/dist
-doc-site/docs/.vitepress/cache
-doc-site/docs/node_modules
+doc-site/.vitepress/dist
+doc-site/.vitepress/cache
+doc-site/node_modules
