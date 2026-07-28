@@ -11,7 +11,6 @@ export default createContentLoader("features-blog/posts/*.md", {
         title: page.frontmatter.title,
         date: formatDate(page.frontmatter.date),
         description: page.frontmatter.description,
-        author: page.frontmatter.author,
         url: page.url,
       }));
   },
