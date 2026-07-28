@@ -2,9 +2,9 @@ import { defineConfig } from "vitepress";
 
 export default defineConfig({
   srcDir: "docs",
-  title: "Upkeep",
-  description: "Documentation for Upkeep",
-  base: "/Wellness-App/",
+  title: "UpKeep",
+  description: "Documentation for UpKeep",
+  base: "/UpKeep/",
   vite: {
     css: {
       postcss: {
@@ -38,7 +38,7 @@ export default defineConfig({
       ],
     },
     socialLinks: [
-      { icon: "github", link: "https://github.com/Gas-Capstone/Wellness-App" },
+      { icon: "github", link: "https://github.com/Gas-Capstone/UpKeep" },
     ],
   },
 });
