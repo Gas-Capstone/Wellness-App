@@ -1,4 +1,4 @@
-import React, { createContext, useCallback, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useState, useEffect } from "react";
 import {
   CompletionsByDate,
   Habit,
@@ -7,6 +7,8 @@ import {
   removeHabitFromList,
 } from "@/lib/habits/habits";
 import { getTodaysDate } from "@/lib/time_management/week";
+import { useUserContext } from "./userContext";
+import { getHabitsByUser } from "@/lib/supabaseFunctions";
 
 // Lifted out of HabitsScreen's local useState so index.tsx can read the same data.
 
@@ -39,10 +41,19 @@ type HabitsProviderProps = {
 
 export const HabitsProvider = ({ children }: HabitsProviderProps) => {
   const [selectedDate, setSelectedDate] = useState(getTodaysDate());
-  const [habitArray, setHabitArray] = useState<Habit[]>([]);
+  const { user } = useUserContext()
+  const [habitArray, setHabitArray] = useState([]);
   const [habitCompletions, setHabitCompletions] = useState<CompletionsByDate>(
     {},
   );
+
+  useEffect(() => {
+    getHabitsByUser(user)
+      .then((res?) => {
+        setHabitArray(res)
+        console.log(res)
+      }).catch((err) => console.log(err))
+  }, [user])
 
   const toggleHabit = useCallback(({ habitId, habitDate }: ToggleHabitArgs) => {
     setHabitCompletions((prev) => {

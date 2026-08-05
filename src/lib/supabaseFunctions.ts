@@ -36,3 +36,37 @@ export async function getCompletedWorkouts(user){
         name: session.workouts?.name
     }))
 }
+
+/* --------------
+    HABITS
+------------- */
+export async function getHabitsByUser(user) {
+    const {data, error} = await supabase
+        .from("habits")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("time", { ascending: false })
+    if (error) console.log("Error fetching habits from database: ", error)
+    return data
+}
+
+export async function getCompletedHabitsByUser(user){
+    const {data, error} = await supabase
+        .from("habit_completions")
+        .select("*")
+        .eq("user_id", user.id)
+    if (error) console.log("Error fetching completed habits from database: ", error)
+    return data
+}
+
+export async function createHabit(user, habit){
+    const {data, error} = await supabase
+        .from("habits")
+        .insert({
+            user_id: user.id,
+            title: habit.title,
+            time: habit.time,
+            weekday: habit.weekdays
+        })
+        if (error) console.log("Error creating habit: ", error)
+}
